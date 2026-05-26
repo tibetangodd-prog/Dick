@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>重甲騎士 Boss 技能展示</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #111;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+        }
+        canvas {
+            background-color: #1a1a1e;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.9);
+            border: 2px solid #3a3a42;
+        }
+        #skill-bar {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .skill-btn {
+            position: relative;
+            width: 90px;
+            height: 50px;
+            background: linear-gradient(135deg, #444, #222);
+            border: 2px solid #666;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.1s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .skill-btn:active:not(.cd) {
+            transform: translateY(2px);
+            box-shadow: 0 2px 3px rgba(0,0,0,0.3);
+        }
+        .skill-btn.cd {
+            background: #1a1a1a;
+            border-color: #333;
+            color: #666;
+            cursor: not-allowed;
+        }
+        .cd-overlay {
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            height: 0%;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 4px;
+            transition: height 0.1s linear;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="gameCanvas" width="800" height="550"></canvas>
+
+    <div id="skill-bar">
+        <button class="skill-btn" id="btn-dash">持盾衝刺<div class="cd-overlay"></div></button>
+        <button class="skill-btn" id="btn-sweep">長矛橫掃<div class="cd-overlay"></div></button>
+        <button class="skill-btn" id="btn-thrust">長矛直刺<div class="cd-overlay"></div></button>
+        <button class="skill-btn" id="btn-jump">飛天大操<div class="cd-overlay"></div></button>
+        <button class="skill-btn" id="btn-heal">回血陣<div class="cd-overlay"></div></button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const knight = {
+            x: canvas.width / 2,
+            y: 400,
+            offsetX: 0,        
+            offsetY: 0,        
+            angle: 0,
+            shieldX: -45,
+            spearAngle: 0.2,
+            spearX: 45,
+            spearY: 0,
+            state: 'idle',
+            timer: 0,
+            cooldowns: {
+                dash: { max: 120, current: 0, btnId: 'btn-dash' },
+                sweep: { max: 90, current: 0, btnId: 'btn-sweep' },
+                thrust: { max: 60, current: 0, btnId: 'btn-thrust' },
+                jump: { max: 150, current: 0, btnId: 'btn-jump' },
+                heal: { max: 240, current: 0, btnId: 'btn-heal' }
+            },
+            healCircleAlpha: 0,
+            dashTrails: []
+        };
+
+        setupSkillButton('btn-dash', 'dash');
+        setupSkillButton('btn-sweep', 'sweep');
+        setupSkillButton('btn-thrust', 'thrust');
+        setupSkillButton('btn-jump', 'jump');
+        setupSkillButton('btn-heal', 'heal');
+
+        function setupSkillButton(id, stateName) {
+            document.getElementById(id).addEventListener('click', () => {
+                if (knight.state !== 'idle') return; 
+                if (knight.cooldowns[stateName].current > 0) return; 
+
+                knight.state = stateName;
+                knight.timer = 0;
+                knight.cooldowns[stateName].current = knight.cooldowns[stateName].max;
+            });
+        }
+
+        function update() {
+            knight.angle += 0.05;
+
+            Object.keys(knight.cooldowns).forEach(key => {
+                const cd = knight.cooldowns[key];
+                if (cd.current > 0) {
+                    cd.current--;
+                    const btn = document.getElementById(cd.btnId);
+                    btn.classList.add('cd');
+                    const overlay = btn.querySelector('.cd-overlay');
+                    overlay.style.height = `${(cd.current / cd.max) * 100}%`;
+                } else {
+                    document.getElementById(cd.btnId).classList.remove('cd');
+                }
+            });
+
+            knight.timer++;
+
+            if (knight.state === 'idle') {
+                knight.offsetX = 0;
+                knight.offsetY = 0;
+                knight.shieldX = -45 + Math.sin(knight.angle * 0.5) * 2;
+                knight.spearAngle = 0.2 + Math.cos(knight.angle * 0.5) * 0.05;
+                knight.spearX = 45;
+                knight.spearY = 0;
+                knight.healCircleAlpha = 0;
+            }
+            else if (knight.state === 'dash') {
+                if (knight.timer < 15) {
+                    knight.offsetX -= 2; 
+                    knight.shieldX = -35; 
+                } else if (knight.timer >= 15 && knight.timer <= 35) {
+                    knight.offsetX += 15; 
+                    knight.shieldX = -60; 
+                    if (knight.timer % 3 === 0) {
+                        knight.dashTrails.push({ x: knight.x + knight.offsetX, y: knight.y });
+                    }
+                } else {
+                    knight.state = 'idle';
+                }
+            } 
+            else if (knight.state === 'sweep') {
+                if (knight.timer < 12) {
+                    knight.spearAngle = -1.2; 
+                    knight.spearX = 35;
+                } else if (knight.timer >= 12 && knight.timer <= 28) {
+                    knight.spearAngle += 0.25; 
+                } else {
+                    knight.state = 'idle';
+                }
+            } 
+            else if (knight.state === 'thrust') {
+                if (knight.timer < 8) {
+                    knight.spearX = 25; 
+                    knight.spearAngle = 0;
+                } else if (knight.timer >= 8 && knight.timer <= 16) {
+                    knight.spearX = 110; 
+                } else if (knight.timer > 16 && knight.timer <= 28) {
+                    knight.spearX -= 7;  
+                } else {
+                    knight.state = 'idle';
+                }
+            } 
+            else if (knight.state === 'jump') {
+                if (knight.timer <= 40) {
+                    const t = knight.timer / 40; 
+                    knight.offsetY = -Math.sin(t * Math.PI) * 180;
+                } else {
+                    knight.state = 'idle';
+                }
+            } 
+            else if (knight.state === 'heal') {
+                if (knight.timer <= 60) {
+                    knight.healCircleAlpha = Math.min(1, knight.timer / 15);
+                    knight.spearAngle = -0.5; 
+                    knight.spearY = -20;
+                } else {
+                    knight.state = 'idle';
+                }
+            }
+
+            if (knight.dashTrails.length > 10) knight.dashTrails.shift();
+            if (knight.state !== 'dash' && knight.dashTrails.length > 0) knight.dashTrails.pop();
+        }
+
+        function draw() {
+            ctx.fillStyle = '#1a1a1e';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(0, knight.y + 40);
+            ctx.lineTo(canvas.width, knight.y + 40);
+            ctx.stroke();
+
+            if (knight.state === 'dash') {
+                knight.dashTrails.forEach((trail, index) => {
+                    ctx.save();
+                    ctx.globalAlpha = (index / knight.dashTrails.length) * 0.2;
+                    drawKnightBody(trail.x, trail.y, 0, true); 
+                    ctx.restore();
+                });
+            }
+
+            const kx = knight.x + knight.offsetX;
+            const ky = knight.y + knight.offsetY; 
+            const bob = Math.sin(knight.angle) * 2; 
+
+            if (knight.healCircleAlpha > 0) {
+                ctx.save();
+                ctx.globalAlpha = knight.healCircleAlpha;
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = '#00ff66';
+                ctx.strokeStyle = '#00ff66';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.ellipse(kx, knight.y + 35, 100 + Math.sin(knight.angle*2)*5, 25, 0, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.fillStyle = 'rgba(0, 255, 100, 0.15)';
+                ctx.fillRect(kx - 15, ky - 80, 30, 110);
+                ctx.restore();
+            }
+
+            ctx.save();
+            ctx.translate(kx + knight.spearX, ky + 10 + bob + knight.spearY);
+            ctx.rotate(knight.spearAngle);
+            ctx.fillStyle = '#5c5c66';
+            ctx.fillRect(-4, -120, 8, 200);
+            ctx.fillStyle = '#e0e0eb';
+            ctx.beginPath();
+            ctx.moveTo(-10, -120);
+            ctx.lineTo(10, -120);
+            ctx.lineTo(0, -170);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = '#d4af37';
+            ctx.fillRect(-6, -120, 12, 10);
+            ctx.restore();
+
+            const isTrail = knight.state === 'dash' && knight.timer > 15;
+            drawKnightBody(kx, ky, bob, false, isTrail);
+
+            ctx.save();
+            ctx.translate(kx + knight.shieldX, ky + 15 + bob);
+            ctx.fillStyle = '#4a4a52'; 
+            ctx.fillRect(-18, -35, 36, 70);
+            ctx.fillStyle = '#d4af37'; 
+
+ctx.fillRect(-18, -35, 36, 5);
+ctx.fillRect(-18, 30, 36, 5);
+ctx.fillRect(-3, -35, 6, 70);
+ctx.fillStyle = '#fff';
+ctx.fillRect(-14, -25, 4, 4);
+ctx.fillRect(10, -25, 4, 4);
+ctx.fillRect(-14, 20, 4, 4);
+ctx.fillRect(10, 20, 4, 4);
+ctx.restore();
+if (knight.state === 'sweep' && knight.timer >= 12 && knight.timer <= 22) {
+ctx.save();
+ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+ctx.lineWidth = 12;
+ctx.shadowBlur = 15;
+ctx.shadowColor = '#d4af37';
+ctx.beginPath();
+ctx.arc(kx, ky, 130, -0.5, 1.2);
+ctx.stroke();
+ctx.restore();
+}
+ctx.fillStyle = '#888';
+ctx.font = '16px monospace';
+ctx.textAlign = 'center';
+ctx.fillText('使用下方的技能鍵來控制重甲騎士！', canvas.width / 2, 40);
+ctx.fillStyle = '#555';
+ctx.font = '13px monospace';
+ctx.fillText(狀態: ${knight.state.toUpperCase()} | 座標 XOffset: ${Math.round(knight.offsetX)} | YOffset(跳躍): ${Math.round(knight.offsetY)}, canvas.width / 2, 70);
+}
+function drawKnightBody(x, y, bob, isGhost = false, isDashing = false) {
+if (isGhost) {
+ctx.fillStyle = 'rgba(0, 150, 255, 0.3)';
+ctx.fillRect(x - 30, y - 50, 60, 90);
+return;
+}
+const armorMain = '#61616b';
+const armorDark = '#3e3e45';
+const armorLight = '#8a8a99';
+ctx.fillStyle = armorDark;
+ctx.fillRect(x - 22, y + 25, 14, 15);
+ctx.fillRect(x + 8, y + 25, 14, 15);
+ctx.fillStyle = armorMain;
+ctx.fillRect(x - 26, y + 35, 18, 7);
+ctx.fillRect(x + 8, y + 35, 18, 7);
+ctx.fillStyle = armorDark;
+ctx.fillRect(x - 28, y + 5, 56, 22);
+ctx.fillStyle = '#990000';
+ctx.fillRect(x - 20, y + 12, 40, 15);
+ctx.fillStyle = armorMain;
+ctx.fillRect(x - 30, y - 35 + bob, 60, 45);
+ctx.fillStyle = armorLight;
+ctx.fillRect(x - 30, y - 35 + bob, 8, 45);
+ctx.fillRect(x - 10, y - 25 + bob, 20, 5);
+ctx.fillStyle = armorDark;
+ctx.fillRect(x - 42, y - 40 + bob, 16, 20);
+ctx.fillRect(x + 26, y - 40 + bob, 16, 20);
+ctx.fillStyle = armorDark;
+ctx.fillRect(x - 12, y - 45 + bob, 24, 12);
+ctx.fillStyle = armorMain;
+ctx.beginPath();
+ctx.arc(x, y - 60 + bob, 18, 0, Math.PI * 2);
+ctx.fill();
+ctx.fillRect(x - 18, y - 60 + bob, 36, 22);
+ctx.fillStyle = isDashing ? '#ff0000' : '#111';
+ctx.fillRect(x - 12, y - 58 + bob, 24, 4);
+ctx.fillRect(x - 2, y - 58 + bob, 4, 16);
+ctx.fillStyle = '#cc0000';
+ctx.beginPath();
+ctx.moveTo(x, y - 78 + bob);
+ctx.quadraticCurveTo(x - 25, y - 90 + bob, x - 30, y - 65 + bob);
+ctx.closePath();
+ctx.fill();
+}
+function gameLoop() {
+update();
+draw();
+requestAnimationFrame(gameLoop);
+}
+gameLoop();
+
+</script>
+</body>
+</html>
+
+        
