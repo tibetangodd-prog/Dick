@@ -26,14 +26,6 @@ A 3D third-person action game built with Three.js.
 - **🔄** — Roll
 - **Drag center** — Rotate camera
 
-## 🚀 Deploy to GitHub Pages
-
-1. Create a new GitHub repository
-2. Upload all files (keeping folder structure)
-3. Go to **Settings → Pages**
-4. Set Source to **Deploy from branch → main → / (root)**
-5. Your game will be live at `https://yourusername.github.io/your-repo-name`
-
 ## 📁 File Structure
 ```
 index.html          ← main game
