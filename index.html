@@ -46,12 +46,12 @@ canvas{display:block;width:100vw;height:100vh;}
 </style>
 </head>
 <body>
-<div id="ver">v9</div>
+<div id="ver">v10</div>
 <div id="loading">
   <h1>⚔️ BLADE &amp; SPELL</h1>
   <p>LOADING WORLD</p>
   <div id="bar-wrap"><div id="bar"></div></div>
-  <div id="load-status">v9 — Starting…</div>
+  <div id="load-status">v10 — Starting…</div>
 </div>
 <div id="hud">
   <div class="srow"><span class="slbl hp-l">HP</span><div class="strack hp-t"><div class="hp-f" id="hpf" style="width:100%"></div></div></div>
@@ -70,7 +70,7 @@ canvas{display:block;width:100vw;height:100vh;}
 // 立即設定狀態
 var stEl=document.getElementById('load-status');
 var barEl=document.getElementById('bar');
-function setStatus(msg,col){stEl.textContent='v9 — '+msg;stEl.style.color=col||'#555';}
+function setStatus(msg,col){stEl.textContent='v10 — '+msg;stEl.style.color=col||'#555';}
 setStatus('Loading bundle…');
 
 // 全局錯誤捕捉
@@ -105,7 +105,7 @@ document.head.appendChild(s);
 function startGame(){
 var stEl=document.getElementById('load-status');
 var barEl=document.getElementById('bar');
-function setStatus(msg,col){stEl.textContent='v9 — '+msg;stEl.style.color=col||'#555';}
+function setStatus(msg,col){stEl.textContent='v10 — '+msg;stEl.style.color=col||'#555';}
 try{
   var mobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&innerWidth<1024);
 
@@ -173,7 +173,7 @@ try{
   var _p=new THREE.Vector3(),_q=new THREE.Quaternion(),_f=new THREE.Vector3(),_c=new THREE.Vector3();
   var keys={},joy={x:0,y:0};
 
-  var URLS=['character.glb','Idle.glb','Walking.glb','Running.glb','Sprint.glb','Attack1.glb','Attack2.glb','CastSpell.glb','Roll.glb'];
+  var URLS=['character.glb?v=2','Idle.glb?v=2','Walking.glb?v=2','Running.glb?v=2','Sprint.glb?v=2','Attack1.glb?v=2','Attack2.glb?v=2','CastSpell.glb?v=2','Roll.glb?v=2'];
   var gltfs=[],ldr=new THREE.GLTFLoader();
   function loadNext(i){
     if(i>=URLS.length){onAllLoaded();return;}
@@ -263,7 +263,7 @@ try{
     camera.lookAt(cTgt);renderer.render(scene,camera);
   }
 }catch(err){
-  document.getElementById('load-status').textContent='v9 — ERROR: '+err.message;
+  document.getElementById('load-status').textContent='v10 — ERROR: '+err.message;
   document.getElementById('load-status').style.color='#ff4444';
   console.error(err);
 }}
