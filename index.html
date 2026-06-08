@@ -46,12 +46,12 @@ canvas{display:block;width:100vw;height:100vh;}
 </style>
 </head>
 <body>
-<div id="ver">v10</div>
+<div id="ver">v12</div>
 <div id="loading">
   <h1>⚔️ BLADE &amp; SPELL</h1>
   <p>LOADING WORLD</p>
   <div id="bar-wrap"><div id="bar"></div></div>
-  <div id="load-status">v10 — Starting…</div>
+  <div id="load-status">v12 — Starting…</div>
 </div>
 <div id="hud">
   <div class="srow"><span class="slbl hp-l">HP</span><div class="strack hp-t"><div class="hp-f" id="hpf" style="width:100%"></div></div></div>
@@ -70,7 +70,7 @@ canvas{display:block;width:100vw;height:100vh;}
 // 立即設定狀態
 var stEl=document.getElementById('load-status');
 var barEl=document.getElementById('bar');
-function setStatus(msg,col){stEl.textContent='v10 — '+msg;stEl.style.color=col||'#555';}
+function setStatus(msg,col){stEl.textContent='v12 — '+msg;stEl.style.color=col||'#555';}
 setStatus('Loading bundle…');
 
 // 全局錯誤捕捉
@@ -105,10 +105,16 @@ document.head.appendChild(s);
 function startGame(){
 var stEl=document.getElementById('load-status');
 var barEl=document.getElementById('bar');
-function setStatus(msg,col){stEl.textContent='v10 — '+msg;stEl.style.color=col||'#555';}
+function setStatus(msg,col){stEl.textContent='v12 — '+msg;stEl.style.color=col||'#555';}
 try{
   var mobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&innerWidth<1024);
 
+  // Force show mobile controls based on JS detection (more reliable than CSS)
+  if(mobile){
+    document.getElementById('jzone').style.display='flex';
+    document.getElementById('btns').style.display='flex';
+    document.getElementById('hint').style.display='none';
+  }
   var renderer=new THREE.WebGLRenderer({antialias:!mobile,powerPreference:'high-performance'});
   renderer.setPixelRatio(mobile?Math.min(devicePixelRatio,1.5):Math.min(devicePixelRatio,2));
   renderer.setSize(innerWidth,innerHeight);
@@ -124,7 +130,14 @@ try{
   scene.fog=new THREE.FogExp2(0x06000d,mobile?.045:.028);
   var camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,.05,mobile?100:180);
 
-  scene.add(new THREE.AmbientLight(0x3a2060,mobile?4:2.5));
+  scene.add(new THREE.AmbientLight(0x8060a0,mobile?5:3));
+  // Debug: bright cube at origin
+  var dbgCube=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshBasicMaterial({color:0xff0000}));
+  dbgCube.position.set(0,1,0);scene.add(dbgCube);
+  // Debug: run render loop immediately so we see something
+  (function dbgLoop(){requestAnimationFrame(dbgLoop);
+    camera.position.set(0,1.5,5);camera.lookAt(0,1,0);
+    renderer.render(scene,camera);})();
   var sun=new THREE.DirectionalLight(0xffe0ff,2.0);
   sun.position.set(6,12,4);
   if(!mobile){sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.near=.5;sun.shadow.camera.far=45;sun.shadow.camera.left=-14;sun.shadow.camera.right=14;sun.shadow.camera.top=14;sun.shadow.camera.bottom=-14;}
@@ -163,7 +176,7 @@ try{
 
   var character=null,mixer=null,rHand=null,lHand=null,acts={};
   var clock=new THREE.Clock();
-  var yaw=0,pitch=.3,cDist=5.5;
+  var yaw=0,pitch=.25,cDist=6;
   var cTgt=new THREE.Vector3();
   var velY=0,charY=0,GV=-22,JV=9;
   var curAnim='idle',attacking=false,casting=false,rolling=false;
@@ -191,7 +204,7 @@ try{
       if(o.isMesh){o.castShadow=!mobile;o.receiveShadow=!mobile;if(mobile&&o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(function(m){m.roughness=1;m.metalness=0;});}
       if(o.isBone){if(o.name==='mixamorig7RightHand')rHand=o;if(o.name==='mixamorig7LeftHand')lHand=o;}
     });
-    scene.add(character);
+    scene.add(character);if(dbgCube)scene.remove(dbgCube);
     mixer=new THREE.AnimationMixer(character);
     [['idle',1],['walk',2],['run',3],['sprint',4],['atk1',5],['atk2',6],['spell',7],['roll',8]].forEach(function(p){var cl=gltfs[p[1]].animations&&gltfs[p[1]].animations[0];if(!cl)return;cl.name=p[0];acts[p[0]]=mixer.clipAction(cl);});
     ['atk1','atk2','spell','roll'].forEach(function(n){if(acts[n]){acts[n].setLoop(THREE.LoopOnce);acts[n].clampWhenFinished=true;}});
@@ -263,7 +276,7 @@ try{
     camera.lookAt(cTgt);renderer.render(scene,camera);
   }
 }catch(err){
-  document.getElementById('load-status').textContent='v10 — ERROR: '+err.message;
+  document.getElementById('load-status').textContent='v12 — ERROR: '+err.message;
   document.getElementById('load-status').style.color='#ff4444';
   console.error(err);
 }}
