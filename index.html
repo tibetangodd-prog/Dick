@@ -201,7 +201,7 @@ try{
         mats.forEach(function(m){m.roughness=1;m.metalness=0;m.needsUpdate=true;});}
       if(o.isBone){if(o.name==='mixamorig7RightHand')rHand=o;if(o.name==='mixamorig7LeftHand')lHand=o;}
     });
-    scene.add(character);if(dbgCube)scene.remove(dbgCube);
+    scene.add(character);
     mixer=new THREE.AnimationMixer(character);
     [['idle',1],['walk',2],['run',3],['sprint',4],['atk1',5],['atk2',6],['spell',7],['roll',8]].forEach(function(p){var cl=gltfs[p[1]].animations&&gltfs[p[1]].animations[0];if(!cl)return;cl.name=p[0];acts[p[0]]=mixer.clipAction(cl);});
     ['atk1','atk2','spell','roll'].forEach(function(n){if(acts[n]){acts[n].setLoop(THREE.LoopOnce);acts[n].clampWhenFinished=true;}});
