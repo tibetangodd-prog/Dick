@@ -46,12 +46,12 @@ canvas{display:block;width:100vw;height:100vh;}
 </style>
 </head>
 <body>
-<div id="ver">v14</div>
+<div id="ver">v12</div>
 <div id="loading">
   <h1>⚔️ BLADE &amp; SPELL</h1>
   <p>LOADING WORLD</p>
   <div id="bar-wrap"><div id="bar"></div></div>
-  <div id="load-status">v14 — Starting…</div>
+  <div id="load-status">v12 — Starting…</div>
 </div>
 <div id="hud">
   <div class="srow"><span class="slbl hp-l">HP</span><div class="strack hp-t"><div class="hp-f" id="hpf" style="width:100%"></div></div></div>
@@ -70,7 +70,7 @@ canvas{display:block;width:100vw;height:100vh;}
 // 立即設定狀態
 var stEl=document.getElementById('load-status');
 var barEl=document.getElementById('bar');
-function setStatus(msg,col){stEl.textContent='v14 — '+msg;stEl.style.color=col||'#555';}
+function setStatus(msg,col){stEl.textContent='v12 — '+msg;stEl.style.color=col||'#555';}
 setStatus('Loading bundle…');
 
 // 全局錯誤捕捉
@@ -105,7 +105,7 @@ document.head.appendChild(s);
 function startGame(){
 var stEl=document.getElementById('load-status');
 var barEl=document.getElementById('bar');
-function setStatus(msg,col){stEl.textContent='v14 — '+msg;stEl.style.color=col||'#555';}
+function setStatus(msg,col){stEl.textContent='v12 — '+msg;stEl.style.color=col||'#555';}
 try{
   var mobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&innerWidth<1024);
 
@@ -126,20 +126,25 @@ try{
   document.body.appendChild(renderer.domElement);
 
   var scene=new THREE.Scene();
-  scene.background=new THREE.Color(0x1a1030);
-  // No fog for better visibility
+  scene.background=new THREE.Color(0x06000d);
+  scene.fog=new THREE.FogExp2(0x06000d,mobile?.045:.028);
   var camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,.05,mobile?100:180);
 
-  scene.add(new THREE.AmbientLight(0xffffff, mobile?3:2));
+  scene.add(new THREE.AmbientLight(0x8060a0,mobile?5:3));
+  // Debug: bright cube at origin
+  var dbgCube=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshBasicMaterial({color:0xff0000}));
+  dbgCube.position.set(0,1,0);scene.add(dbgCube);
+  // Debug: run render loop immediately so we see something
+  (function dbgLoop(){requestAnimationFrame(dbgLoop);
+    camera.position.set(0,1.5,5);camera.lookAt(0,1,0);
+    renderer.render(scene,camera);})();
+  var sun=new THREE.DirectionalLight(0xffe0ff,2.0);
+  sun.position.set(6,12,4);
+  if(!mobile){sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.near=.5;sun.shadow.camera.far=45;sun.shadow.camera.left=-14;sun.shadow.camera.right=14;sun.shadow.camera.top=14;sun.shadow.camera.bottom=-14;}
+  scene.add(sun);
+  if(!mobile){var rim=new THREE.DirectionalLight(0x3040ff,.9);rim.position.set(-4,6,-6);scene.add(rim);}
 
-  var sun=new THREE.DirectionalLight(0xffffff, 2.5);
-  sun.position.set(6,12,4); scene.add(sun);
-  var front=new THREE.DirectionalLight(0xffffff, 2.0);
-  front.position.set(0,3,8); scene.add(front);
-  var fill=new THREE.DirectionalLight(0x8888ff, 1.5);
-  fill.position.set(-5,5,-3); scene.add(fill);
-
-  var ground=new THREE.Mesh(new THREE.PlaneGeometry(80,80),new THREE.MeshStandardMaterial({color:0x2a1840,roughness:.95,metalness:.05}));
+  var ground=new THREE.Mesh(new THREE.PlaneGeometry(80,80),new THREE.MeshStandardMaterial({color:0x150720,roughness:.95,metalness:.05}));
   ground.rotation.x=-Math.PI/2;ground.receiveShadow=!mobile;scene.add(ground);
   [[3,.04,0x8040ff,.35],[2.5,.025,0x5028bb,.2],[3.8,.018,0x3818aa,.14]].forEach(function(c){var m=new THREE.Mesh(new THREE.RingGeometry(c[0]-c[1],c[0],48),new THREE.MeshBasicMaterial({color:c[2],side:THREE.DoubleSide,transparent:true,opacity:c[3]}));m.rotation.x=-Math.PI/2;m.position.y=.003;scene.add(m);});
   for(var ri=0;ri<12;ri++){var ra=(ri/12)*Math.PI*2;var rd=new THREE.Mesh(new THREE.CircleGeometry(.048,6),new THREE.MeshBasicMaterial({color:0xff88ff,transparent:true,opacity:.7,side:THREE.DoubleSide}));rd.position.set(Math.cos(ra)*3,.004,Math.sin(ra)*3);rd.rotation.x=-Math.PI/2;scene.add(rd);}
@@ -171,7 +176,7 @@ try{
 
   var character=null,mixer=null,rHand=null,lHand=null,acts={};
   var clock=new THREE.Clock();
-  var yaw=0,pitch=.2,cDist=4;
+  var yaw=0,pitch=.25,cDist=6;
   var cTgt=new THREE.Vector3();
   var velY=0,charY=0,GV=-22,JV=9;
   var curAnim='idle',attacking=false,casting=false,rolling=false;
@@ -196,23 +201,27 @@ try{
     setStatus('Building scene…');
     character=gltfs[0].scene;character.scale.setScalar(.01);
     character.traverse(function(o){
-      if(o.isMesh){o.castShadow=false;o.receiveShadow=false;
-        var mats=Array.isArray(o.material)?o.material:[o.material];
-        mats.forEach(function(m){m.roughness=1;m.metalness=0;m.needsUpdate=true;});}
+      if(o.isMesh){o.castShadow=!mobile;o.receiveShadow=!mobile;if(mobile&&o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(function(m){m.roughness=1;m.metalness=0;});}
       if(o.isBone){if(o.name==='mixamorig7RightHand')rHand=o;if(o.name==='mixamorig7LeftHand')lHand=o;}
     });
-    // Check character bounds and fix Y offset
-    character.updateMatrixWorld(true);
-    scene.add(character);
-    character.position.y = 0; // feet on ground
+    scene.add(character);if(dbgCube)scene.remove(dbgCube);
     mixer=new THREE.AnimationMixer(character);
-    [['idle',1],['walk',2],['run',3],['sprint',4],['atk1',5],['atk2',6],['spell',7],['roll',8]].forEach(function(p){var cl=gltfs[p[1]].animations&&gltfs[p[1]].animations[0];if(!cl)return;cl.name=p[0];acts[p[0]]=mixer.clipAction(cl);});
+    [['idle',1],['walk',2],['run',3],['sprint',4],['atk1',5],['atk2',6],['spell',7],['roll',8]].forEach(function(p){
+      var g=gltfs[p[1]];
+      if(!g||!g.animations||!g.animations[0]){console.warn('No anim:',p[0]);return;}
+      var cl=g.animations[0].clone();
+      cl.name=p[0];
+      acts[p[0]]=mixer.clipAction(cl);
+      console.log('Loaded anim:',p[0],'tracks:',cl.tracks.length);
+    });
     ['atk1','atk2','spell','roll'].forEach(function(n){if(acts[n]){acts[n].setLoop(THREE.LoopOnce);acts[n].clampWhenFinished=true;}});
     mixer.addEventListener('finished',function(e){
       var n=e.action._clip.name;
-      if(n==='atk1'||n==='atk2'){attacking=false;sword.visible=false;if(acts.idle){acts[curAnim].stop();acts.idle.reset().play();curAnim='idle';}}
-      if(n==='spell'){casting=false;if(acts.idle){acts[curAnim].stop();acts.idle.reset().play();curAnim='idle';}}
-      if(n==='roll'){rolling=false;velY=0;if(acts.idle){acts[curAnim].stop();acts.idle.reset().play();curAnim='idle';}}
+      if(n==='atk1'||n==='atk2'){attacking=false;sword.visible=false;}
+      if(n==='spell')casting=false;
+      if(n==='roll'){rolling=false;velY=0;}
+      e.action.stop();
+      if(acts.idle){acts.idle.reset().fadeIn(.1).play();curAnim='idle';}
     });
     if(acts.idle)acts.idle.play();curAnim='idle';
     barEl.style.width='100%';setStatus('Ready!','#66ff88');
@@ -238,13 +247,13 @@ try{
   document.addEventListener('touchend',function(e){if(!ct)return;for(var ti=0;ti<e.changedTouches.length;ti++)if(e.changedTouches[ti].identifier===ct.id)ct=null;},{passive:true});
   function gbtn(id,code){var el=document.getElementById(id);el.addEventListener('touchstart',function(e){e.preventDefault();e.stopPropagation();keys[code]=true;el.classList.add('on');},{passive:false});el.addEventListener('touchend',function(){keys[code]=false;el.classList.remove('on');});el.addEventListener('touchcancel',function(){keys[code]=false;el.classList.remove('on');});}
   gbtn('bb-j','Space');gbtn('bb-a','KeyJ');gbtn('bb-b','KeyK');gbtn('bb-s','KeyL');gbtn('bb-r','KeyR');
-  function fadeTo(n,d){
-    d=d||.13;if(curAnim===n||!acts[n])return;
-    var prev=acts[curAnim];
-    if(prev&&prev.isRunning())prev.fadeOut(d);
-    acts[n].reset().fadeIn(d).play();curAnim=n;
+  function fadeTo(n,d){d=d||.13;if(curAnim===n||!acts[n])return;if(acts[curAnim])acts[curAnim].fadeOut(d);acts[n].reset().fadeIn(d).play();curAnim=n;}
+  function oneShot(n){
+    if(!acts[n])return;
+    Object.values(acts).forEach(function(a){if(a&&a!==acts[n]&&a.isRunning())a.fadeOut(.1);});
+    acts[n].reset().setEffectiveWeight(1).fadeIn(.1).play();
+    curAnim=n;
   }
-  function oneShot(n){if(!acts[n])return;if(acts[curAnim])acts[curAnim].fadeOut(.1);acts[n].reset().fadeIn(.1).play();curAnim=n;}
   var hpf=document.getElementById('hpf'),mpf=document.getElementById('mpf');
   function hudUpdate(){hpf.style.width=hp+'%';mpf.style.width=mp+'%';}
   var cTO=null;
@@ -281,12 +290,12 @@ try{
     for(var ppi2=0;ppi2<PN;ppi2++){pPos[ppi2*3+1]+=.003*dt*60;if(pPos[ppi2*3+1]>6)pPos[ppi2*3+1]=.3;}
     pGeo.attributes.position.needsUpdate=true;
     if(mixer)mixer.update(dt);
-    _c.copy(character.position);_c.y+=0.85;cTgt.lerp(_c,10*dt);
+    _c.copy(character.position);_c.y+=1.0;cTgt.lerp(_c,10*dt);
     camera.position.set(cTgt.x+Math.sin(yaw)*Math.cos(pitch)*cDist,cTgt.y+Math.sin(pitch)*cDist,cTgt.z+Math.cos(yaw)*Math.cos(pitch)*cDist);
     camera.lookAt(cTgt);renderer.render(scene,camera);
   }
 }catch(err){
-  document.getElementById('load-status').textContent='v14 — ERROR: '+err.message;
+  document.getElementById('load-status').textContent='v12 — ERROR: '+err.message;
   document.getElementById('load-status').style.color='#ff4444';
   console.error(err);
 }}
