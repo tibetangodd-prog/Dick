@@ -3,87 +3,87 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>⚔️ Blade & Spell</title>
+<title>⚔️ Blade &amp; Spell</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-body { background:#1a0a2e; overflow:hidden; font-family:system-ui,sans-serif; touch-action:none; }
+body { background:#0e0818; overflow:hidden; font-family:system-ui,sans-serif; touch-action:none; }
 canvas { display:block; width:100vw; height:100vh; }
 
 #loading {
   position:fixed; inset:0;
-  background:radial-gradient(ellipse at center, #140022 0%, #04000e 100%);
+  background:radial-gradient(ellipse at center,#140022 0%,#04000e 100%);
   display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:100;
 }
-#loading h1 { font-size:clamp(1.5rem,5vw,2.6rem); letter-spacing:.2em; color:#c090ff; margin-bottom:.4rem; text-shadow:0 0 25px #7030ff; }
+#loading h1 {
+  font-size:clamp(1.5rem,5vw,2.8rem); letter-spacing:.2em; color:#c090ff;
+  margin-bottom:.4rem; text-shadow:0 0 30px #7030ff;
+}
 #loading p { color:#444; font-size:.72rem; letter-spacing:.18em; margin-bottom:1.8rem; }
 #bar-wrap { width:min(260px,68vw); height:4px; background:#18182a; border-radius:2px; overflow:hidden; }
-#bar { height:100%; background:linear-gradient(90deg,#5010ee,#b050ff); width:0%; transition:width .2s; border-radius:2px; }
-#load-status { margin-top:.9rem; font-size:.65rem; color:#555; max-width:92vw; text-align:center; }
+#bar { height:100%; background:linear-gradient(90deg,#5010ee,#c060ff); width:0%; transition:width .2s; border-radius:2px; }
+#load-status { margin-top:.9rem; font-size:.65rem; color:#555; max-width:88vw; text-align:center; }
 
 #hud { position:fixed; top:0; left:0; pointer-events:none; z-index:10; padding:10px 12px; }
-.srow { display:flex; align-items:center; gap:6px; margin-bottom:4px; }
-.slbl { font-size:.6rem; font-weight:700; width:18px; color:#aaa; }
-.strack { height:5px; border-radius:3px; overflow:hidden; }
-.hp-t { width:130px; background:#2a0808; }
-.mp-t { width:100px; background:#080828; }
-.hp-f { height:100%; background:linear-gradient(90deg,#cc2222,#ff6666); border-radius:3px; transition:width .3s; }
-.mp-f { height:100%; background:linear-gradient(90deg,#2244cc,#6688ff); border-radius:3px; transition:width .3s; }
+.stat-row { display:flex; align-items:center; gap:6px; margin-bottom:5px; }
+.stat-label { font-size:.6rem; font-weight:700; width:18px; color:#aaa; }
+.stat-track { height:5px; border-radius:3px; overflow:hidden; }
+.hp-track { width:clamp(90px,18vw,160px); background:#2a0808; }
+.mp-track { width:clamp(70px,14vw,120px); background:#080828; }
+.hp-bar { height:100%; background:linear-gradient(90deg,#cc2222,#ff6666); border-radius:3px; transition:width .25s; }
+.mp-bar { height:100%; background:linear-gradient(90deg,#2244cc,#6688ff); border-radius:3px; transition:width .25s; }
 
 #combo {
-  position:fixed; top:35%; left:50%; transform:translate(-50%,-50%) scale(0);
-  pointer-events:none; z-index:20; text-align:center;
-  transition:transform .2s cubic-bezier(.34,1.56,.64,1), opacity .2s;
-  opacity:0;
+  position:fixed; top:36%; left:50%; transform:translate(-50%,-50%) scale(0);
+  pointer-events:none; z-index:20; text-align:center; opacity:0;
+  transition:transform .18s cubic-bezier(.34,1.56,.64,1), opacity .18s;
 }
-#combo-txt { font-size:clamp(2rem,6vw,3.5rem); font-weight:900; color:#ffcc00; text-shadow:0 0 20px #ff8800; }
+#combo span { font-size:clamp(2rem,5.5vw,3.2rem); font-weight:900; color:#ffcc00; text-shadow:0 0 20px #ff8800; }
 
-#fps { position:fixed; top:4px; right:8px; color:#333; font-size:.55rem; z-index:10; pointer-events:none; }
+#fps { position:fixed; top:4px; right:8px; color:#2a2a2a; font-size:.55rem; z-index:10; pointer-events:none; }
 
-/* ── Mobile Controls ── */
+/* ─── Mobile Controls ─────────────────────── */
 #jzone {
-  position:fixed; bottom:24px; left:18px;
-  width:120px; height:120px;
+  position:fixed; bottom:22px; left:16px;
+  width:118px; height:118px;
   pointer-events:all; z-index:15; display:none;
 }
 #jbase {
-  width:120px; height:120px; border-radius:50%;
-  background:rgba(255,255,255,.07); border:2px solid rgba(255,255,255,.18);
+  width:118px; height:118px; border-radius:50%;
+  background:rgba(255,255,255,.06); border:2px solid rgba(255,255,255,.16);
   position:relative;
 }
 #jknob {
-  width:46px; height:46px; border-radius:50%;
-  background:rgba(160,100,255,.6); border:2px solid rgba(180,120,255,.8);
+  width:44px; height:44px; border-radius:50%;
+  background:rgba(150,90,255,.55); border:2px solid rgba(170,110,255,.8);
   position:absolute; top:37px; left:37px;
-  box-shadow:0 0 12px rgba(120,60,255,.6);
-  transition:box-shadow .1s;
+  box-shadow:0 0 12px rgba(110,50,255,.6);
 }
 
 #btns {
-  position:fixed; bottom:24px; right:14px;
-  display:none; flex-direction:column; gap:9px; align-items:flex-end; z-index:15;
+  position:fixed; bottom:22px; right:12px;
+  display:none; flex-direction:column; gap:8px; align-items:flex-end; z-index:15;
 }
-.brow { display:flex; gap:9px; }
+.brow { display:flex; gap:8px; }
 .gb {
   width:52px; height:52px; border-radius:50%;
   border:2px solid rgba(255,255,255,.2);
-  background:rgba(0,0,0,.65); color:#fff; font-size:1.15rem;
+  background:rgba(0,0,0,.6); color:#fff; font-size:1.15rem;
   display:flex; align-items:center; justify-content:center;
-  touch-action:manipulation; user-select:none; -webkit-user-select:none;
-  box-shadow:0 3px 12px rgba(0,0,0,.5);
-  transition:opacity .1s, transform .1s;
+  touch-action:manipulation; -webkit-user-select:none; user-select:none;
+  box-shadow:0 2px 12px rgba(0,0,0,.5); transition:opacity .1s, transform .1s;
 }
-.gb:active, .gb.on { opacity:.5; transform:scale(.88); }
-#bb-j  { background:rgba(40,110,255,.4); border-color:rgba(60,130,255,.6); }
-#bb-a  { background:rgba(200,40,40,.4);  border-color:rgba(220,60,60,.6); }
-#bb-b  { background:rgba(200,110,0,.35); border-color:rgba(220,130,0,.6); }
-#bb-s  { background:rgba(30,30,200,.4);  border-color:rgba(50,50,220,.6); }
-#bb-r  { background:rgba(30,160,30,.35); border-color:rgba(50,180,50,.6); }
+.gb.on, .gb:active { opacity:.5; transform:scale(.87); }
+#btn-jump  { background:rgba(40,110,255,.38); border-color:rgba(60,130,255,.55); }
+#btn-atk1  { background:rgba(210,40,40,.38);  border-color:rgba(230,60,60,.55); }
+#btn-atk2  { background:rgba(210,120,0,.33);  border-color:rgba(230,140,0,.55); }
+#btn-spell { background:rgba(30,30,210,.38);  border-color:rgba(50,50,230,.55); }
+#btn-roll  { background:rgba(30,160,30,.33);  border-color:rgba(50,180,50,.55); }
 
 #hint {
-  position:fixed; bottom:14px; right:14px; color:#222; font-size:.6rem;
-  line-height:1.8; text-align:right; pointer-events:none; z-index:10;
+  position:fixed; bottom:14px; right:14px;
+  color:#1e1e1e; font-size:.6rem; line-height:1.85;
+  text-align:right; pointer-events:none; z-index:10;
 }
-
 @media (hover:none) and (pointer:coarse) {
   #jzone, #btns { display:flex; }
   #hint { display:none; }
@@ -96,382 +96,571 @@ canvas { display:block; width:100vw; height:100vh; }
   <h1>⚔️ BLADE &amp; SPELL</h1>
   <p>LOADING WORLD</p>
   <div id="bar-wrap"><div id="bar"></div></div>
-  <div id="load-status">Starting…</div>
+  <div id="load-status">Initializing…</div>
 </div>
 
 <div id="hud">
-  <div class="srow"><span class="slbl">HP</span><div class="strack hp-t"><div class="hp-f" id="hpf" style="width:100%"></div></div></div>
-  <div class="srow"><span class="slbl">MP</span><div class="strack mp-t"><div class="mp-f" id="mpf" style="width:100%"></div></div></div>
+  <div class="stat-row">
+    <span class="stat-label" style="color:#f55">HP</span>
+    <div class="stat-track hp-track"><div class="hp-bar" id="hp-bar" style="width:100%"></div></div>
+  </div>
+  <div class="stat-row">
+    <span class="stat-label" style="color:#55f">MP</span>
+    <div class="stat-track mp-track"><div class="mp-bar" id="mp-bar" style="width:100%"></div></div>
+  </div>
 </div>
 
-<div id="combo"><div id="combo-txt"></div></div>
+<div id="combo"><span id="combo-txt"></span></div>
 <div id="fps"></div>
 
-<div id="hint">
-  WASD 移動 | 滑鼠拖曳 視角<br>
-  空白 跳躍 | Shift 衝刺<br>
-  J/K 攻擊 | L 魔法 | R 翻滾
-</div>
+<div id="hint">WASD 移動 ｜ 拖曳 視角<br>空白 跳躍 ｜ Shift 衝刺<br>J/K 攻擊 ｜ L 魔法 ｜ R 翻滾</div>
 
 <div id="jzone"><div id="jbase"><div id="jknob"></div></div></div>
 <div id="btns">
   <div class="brow">
-    <button class="gb" id="bb-s">✨</button>
-    <button class="gb" id="bb-j">↑</button>
+    <button class="gb" id="btn-spell">✨</button>
+    <button class="gb" id="btn-jump">↑</button>
   </div>
   <div class="brow">
-    <button class="gb" id="bb-r">🔄</button>
-    <button class="gb" id="bb-b">🗡️</button>
-    <button class="gb" id="bb-a">⚔️</button>
+    <button class="gb" id="btn-roll">🔄</button>
+    <button class="gb" id="btn-atk2">🗡️</button>
+    <button class="gb" id="btn-atk1">⚔️</button>
   </div>
 </div>
 
 <script src="three.bundle.js"></script>
 <script>
-// ═══════════════════════════════════════════════════════════════
-//  BLADE & SPELL  —  complete game script
-// ═══════════════════════════════════════════════════════════════
+'use strict';
 
-var stEl  = document.getElementById('load-status');
-var barEl = document.getElementById('bar');
+// ─── Sanity check ────────────────────────────────────────────────────────────
+var statusEl = document.getElementById('load-status');
+var barEl    = document.getElementById('bar');
+function setStatus(msg, col) { statusEl.textContent = msg; statusEl.style.color = col || '#555'; }
 
-function setStatus(msg, col) {
-  stEl.textContent = msg;
-  stEl.style.color = col || '#555';
+if (typeof THREE === 'undefined' || typeof THREE.GLTFLoader === 'undefined') {
+  setStatus('ERROR: three.bundle.js missing or broken', '#f44');
+  throw new Error('THREE / GLTFLoader not found');
 }
 
-if (typeof THREE === 'undefined') {
-  setStatus('ERROR: three.bundle.js failed to load', '#f44');
-  throw new Error('THREE not defined');
-}
-if (typeof THREE.GLTFLoader === 'undefined') {
-  setStatus('ERROR: GLTFLoader missing', '#f44');
-  throw new Error('GLTFLoader not defined');
-}
+// ─── Mobile detection ─────────────────────────────────────────────────────────
+var IS_MOBILE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+             || (navigator.maxTouchPoints > 0 && window.innerWidth < 1200);
 
-setStatus('Initializing renderer…');
-
-// ── Detect mobile ────────────────────────────────────────────────────────────
-var MOBILE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
-             (navigator.maxTouchPoints > 1 && window.innerWidth < 1024);
-
-// Force-show mobile controls if on touch device
-if (MOBILE || navigator.maxTouchPoints > 0) {
+if (IS_MOBILE) {
   document.getElementById('jzone').style.display = 'flex';
   document.getElementById('btns').style.display  = 'flex';
   document.getElementById('hint').style.display  = 'none';
 }
 
-// ── Renderer ─────────────────────────────────────────────────────────────────
-var renderer = new THREE.WebGLRenderer({
-  antialias: !MOBILE,
-  powerPreference: 'high-performance'
-});
-renderer.setPixelRatio(MOBILE ? Math.min(window.devicePixelRatio, 1.5) : Math.min(window.devicePixelRatio, 2));
-renderer.setSize(window.innerWidth, window.innerHeight);
+// ─── Renderer ─────────────────────────────────────────────────────────────────
+var renderer = new THREE.WebGLRenderer({ antialias: !IS_MOBILE, powerPreference: 'high-performance' });
+renderer.setPixelRatio(IS_MOBILE ? Math.min(devicePixelRatio, 1.5) : Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
 renderer.shadowMap.enabled = false;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.2;
+renderer.toneMappingExposure = 1.15;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
 
-// ── Scene ────────────────────────────────────────────────────────────────────
+// ─── Scene / Camera ────────────────────────────────────────────────────────────
 var scene  = new THREE.Scene();
-scene.background = new THREE.Color(0x1a0a2e);
+scene.background = new THREE.Color(0x0e0818);
+var camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.05, 180);
 
-var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.05, 200);
-camera.position.set(0, 2, 5);
-camera.lookAt(0, 1, 0);
+// ─── Lights ───────────────────────────────────────────────────────────────────
+scene.add(new THREE.AmbientLight(0xffffff, 2.8));
 
-// ── Lights ───────────────────────────────────────────────────────────────────
-// Strong ambient so character is always visible
-var ambLight = new THREE.AmbientLight(0xffffff, 2.5);
-scene.add(ambLight);
-
-// Front-facing key light
-var keyLight = new THREE.DirectionalLight(0xffffff, 2.0);
-keyLight.position.set(2, 5, 5);
+var keyLight = new THREE.DirectionalLight(0xffeeff, 2.2);
+keyLight.position.set(3, 6, 5);
 scene.add(keyLight);
 
-// Fill light from left
-var fillLight = new THREE.DirectionalLight(0x8888ff, 1.2);
-fillLight.position.set(-4, 3, 2);
+var fillLight = new THREE.DirectionalLight(0x8888ff, 1.4);
+fillLight.position.set(-4, 4, 2);
 scene.add(fillLight);
 
-// Back rim light
-var rimLight = new THREE.DirectionalLight(0xff80ff, 0.8);
-rimLight.position.set(0, 4, -6);
+var rimLight = new THREE.DirectionalLight(0xff80ff, 1.0);
+rimLight.position.set(0, 5, -7);
 scene.add(rimLight);
 
-// ── Ground ────────────────────────────────────────────────────────────────────
-var groundGeo = new THREE.PlaneGeometry(80, 80);
-var groundMat = new THREE.MeshStandardMaterial({ color: 0x2a1840, roughness: 0.9, metalness: 0.0 });
-var ground = new THREE.Mesh(groundGeo, groundMat);
+// ─── Environment ──────────────────────────────────────────────────────────────
+// Ground
+var ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(80, 80),
+  new THREE.MeshStandardMaterial({ color: 0x231040, roughness: 0.9 })
+);
 ground.rotation.x = -Math.PI / 2;
-ground.position.y = -0.02;
+ground.position.y = 0;
 scene.add(ground);
 
-// Magic circles on ground
-var circleDefs = [
-  { r: 3.0, w: 0.05, color: 0x8844ff, opacity: 0.5 },
-  { r: 2.4, w: 0.03, color: 0x6633cc, opacity: 0.3 },
-  { r: 3.8, w: 0.02, color: 0x4422aa, opacity: 0.2 },
-];
-circleDefs.forEach(function(c) {
-  var geo = new THREE.RingGeometry(c.r - c.w, c.r, 64);
-  var mat = new THREE.MeshBasicMaterial({ color: c.color, side: THREE.DoubleSide, transparent: true, opacity: c.opacity });
-  var ring = new THREE.Mesh(geo, mat);
-  ring.rotation.x = -Math.PI / 2;
-  ring.position.y = 0.001;
-  scene.add(ring);
+// Magic rings
+[
+  [3.0, 0.05, 0x9955ff, 0.55],
+  [2.4, 0.03, 0x6633cc, 0.30],
+  [3.8, 0.02, 0x4422aa, 0.18],
+].forEach(function(c) {
+  var mesh = new THREE.Mesh(
+    new THREE.RingGeometry(c[0]-c[1], c[0], 64),
+    new THREE.MeshBasicMaterial({ color:c[2], side:THREE.DoubleSide, transparent:true, opacity:c[3] })
+  );
+  mesh.rotation.x = -Math.PI / 2;
+  mesh.position.y = 0.005;
+  scene.add(mesh);
 });
 
 // Rune dots
 for (var ri = 0; ri < 12; ri++) {
   var ra = (ri / 12) * Math.PI * 2;
-  var dotGeo = new THREE.CircleGeometry(0.06, 8);
-  var dotMat = new THREE.MeshBasicMaterial({ color: 0xff88ff, transparent: true, opacity: 0.8, side: THREE.DoubleSide });
-  var dot = new THREE.Mesh(dotGeo, dotMat);
-  dot.position.set(Math.cos(ra) * 3, 0.002, Math.sin(ra) * 3);
+  var dot = new THREE.Mesh(
+    new THREE.CircleGeometry(0.06, 8),
+    new THREE.MeshBasicMaterial({ color:0xff99ff, transparent:true, opacity:0.85, side:THREE.DoubleSide })
+  );
   dot.rotation.x = -Math.PI / 2;
+  dot.position.set(Math.cos(ra)*3, 0.006, Math.sin(ra)*3);
   scene.add(dot);
 }
 
 // Pillars
-var pillarCount = MOBILE ? 4 : 6;
-for (var pi = 0; pi < pillarCount; pi++) {
-  var pa = (pi / pillarCount) * Math.PI * 2;
-  var PR = 12;
-  var pillarGeo = new THREE.CylinderGeometry(0.28, 0.38, 7, 8);
-  var pillarMat = new THREE.MeshStandardMaterial({ color: 0x221530, roughness: 0.85 });
-  var pillar = new THREE.Mesh(pillarGeo, pillarMat);
-  pillar.position.set(Math.cos(pa) * PR, 3.5, Math.sin(pa) * PR);
+var PILLAR_N = IS_MOBILE ? 4 : 6;
+for (var pi = 0; pi < PILLAR_N; pi++) {
+  var pa = (pi / PILLAR_N) * Math.PI * 2, PR = 12;
+  var pillar = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.27, 0.36, 7, 8),
+    new THREE.MeshStandardMaterial({ color:0x221430, roughness:0.85 })
+  );
+  pillar.position.set(Math.cos(pa)*PR, 3.5, Math.sin(pa)*PR);
   scene.add(pillar);
-
-  var orbGeo = new THREE.SphereGeometry(0.22, 8, 8);
-  var orbMat = new THREE.MeshBasicMaterial({ color: 0x9955ff });
-  var orb = new THREE.Mesh(orbGeo, orbMat);
-  orb.position.set(Math.cos(pa) * PR, 7.4, Math.sin(pa) * PR);
+  var orb = new THREE.Mesh(
+    new THREE.SphereGeometry(0.22, 9, 9),
+    new THREE.MeshBasicMaterial({ color:0xaa66ff })
+  );
+  orb.position.set(Math.cos(pa)*PR, 7.4, Math.sin(pa)*PR);
   scene.add(orb);
-
-  if (!MOBILE || pi % 2 === 0) {
-    var orbPL = new THREE.PointLight(0x7733ee, 2.5, 10);
-    orbPL.position.copy(orb.position);
-    scene.add(orbPL);
+  if (!IS_MOBILE || pi % 2 === 0) {
+    var pl = new THREE.PointLight(0x8844ee, 2.8, 11);
+    pl.position.copy(orb.position);
+    scene.add(pl);
   }
 }
 
-// Ambient floating particles
-var PART_COUNT = MOBILE ? 30 : 70;
-var partPos = new Float32Array(PART_COUNT * 3);
-for (var ppi = 0; ppi < PART_COUNT; ppi++) {
-  partPos[ppi * 3]     = (Math.random() - 0.5) * 26;
-  partPos[ppi * 3 + 1] = Math.random() * 5 + 0.5;
-  partPos[ppi * 3 + 2] = (Math.random() - 0.5) * 26;
+// Floating particles
+var PCOUNT  = IS_MOBILE ? 35 : 75;
+var pBuf    = new Float32Array(PCOUNT * 3);
+for (var pp = 0; pp < PCOUNT; pp++) {
+  pBuf[pp*3]   = (Math.random()-.5)*28;
+  pBuf[pp*3+1] = Math.random()*5 + 0.5;
+  pBuf[pp*3+2] = (Math.random()-.5)*28;
 }
-var partGeo = new THREE.BufferGeometry();
-partGeo.setAttribute('position', new THREE.BufferAttribute(partPos, 3));
-var partMesh = new THREE.Points(partGeo, new THREE.PointsMaterial({
-  color: 0x9966ff, size: 0.08, transparent: true, opacity: 0.55,
-  blending: THREE.AdditiveBlending, depthWrite: false
-}));
-scene.add(partMesh);
+var pGeo = new THREE.BufferGeometry();
+pGeo.setAttribute('position', new THREE.BufferAttribute(pBuf, 3));
+scene.add(new THREE.Points(pGeo, new THREE.PointsMaterial({
+  color:0xaa77ff, size:0.08, transparent:true, opacity:0.55,
+  blending:THREE.AdditiveBlending, depthWrite:false
+})));
 
-// ── Burning Sword (procedural) ────────────────────────────────────────────────
-var swordGroup = new THREE.Group();
+// ─── Burning Sword (procedural geometry) ──────────────────────────────────────
+var swordRoot = new THREE.Group();
 
-// Blade
-var bladeGeo = new THREE.BoxGeometry(0.05, 1.1, 0.01);
-var bladeMat = new THREE.MeshStandardMaterial({
-  color: 0xffffff, emissive: 0xff6600, emissiveIntensity: 1.0,
-  metalness: 0.95, roughness: 0.05
-});
-var bladeMesh = new THREE.Mesh(bladeGeo, bladeMat);
-bladeMesh.position.y = 0.65;
-swordGroup.add(bladeMesh);
+var blade = new THREE.Mesh(
+  new THREE.BoxGeometry(0.048, 1.1, 0.01),
+  new THREE.MeshStandardMaterial({ color:0xffffff, emissive:0xff6600, emissiveIntensity:1.1, metalness:0.97, roughness:0.04 })
+);
+blade.position.y = 0.66;
+swordRoot.add(blade);
 
-// Blade glow
-var bladeGlowGeo = new THREE.BoxGeometry(0.015, 1.08, 0.001);
-var bladeGlowMat = new THREE.MeshBasicMaterial({
-  color: 0xff9900, transparent: true, opacity: 0.8,
-  blending: THREE.AdditiveBlending, depthWrite: false
-});
-var bladeGlow = new THREE.Mesh(bladeGlowGeo, bladeGlowMat);
-bladeGlow.position.set(0.025, 0.65, 0.006);
-swordGroup.add(bladeGlow);
+var bladeGlow = new THREE.Mesh(
+  new THREE.BoxGeometry(0.014, 1.08, 0.001),
+  new THREE.MeshBasicMaterial({ color:0xffaa00, transparent:true, opacity:0.75, blending:THREE.AdditiveBlending, depthWrite:false })
+);
+bladeGlow.position.set(0.026, 0.66, 0.006);
+swordRoot.add(bladeGlow);
 
-// Guard
-var guardGeo = new THREE.BoxGeometry(0.30, 0.04, 0.04);
-var guardMat = new THREE.MeshStandardMaterial({ color: 0xd4a017, metalness: 0.95, roughness: 0.1 });
-var guardMesh = new THREE.Mesh(guardGeo, guardMat);
-guardMesh.position.y = 0.07;
-swordGroup.add(guardMesh);
+var guard = new THREE.Mesh(
+  new THREE.BoxGeometry(0.29, 0.038, 0.038),
+  new THREE.MeshStandardMaterial({ color:0xd4a017, metalness:0.95, roughness:0.12 })
+);
+guard.position.y = 0.07;
+swordRoot.add(guard);
 
-// Handle
-var handleGeo = new THREE.CylinderGeometry(0.025, 0.025, 0.28, 8);
-var handleMat = new THREE.MeshStandardMaterial({ color: 0x3a1600, roughness: 0.9 });
-var handleMesh = new THREE.Mesh(handleGeo, handleMat);
-handleMesh.position.y = -0.075;
-swordGroup.add(handleMesh);
+var handle = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.024, 0.024, 0.27, 8),
+  new THREE.MeshStandardMaterial({ color:0x3a1600, roughness:0.88 })
+);
+handle.position.y = -0.075;
+swordRoot.add(handle);
 
-// Pommel
-var pommelGeo = new THREE.SphereGeometry(0.04, 8, 8);
-var pommelMat = new THREE.MeshStandardMaterial({ color: 0xd4a017, metalness: 0.95, roughness: 0.1 });
-var pommelMesh = new THREE.Mesh(pommelGeo, pommelMat);
-pommelMesh.position.y = -0.22;
-swordGroup.add(pommelMesh);
+var pommel = new THREE.Mesh(
+  new THREE.SphereGeometry(0.038, 8, 8),
+  new THREE.MeshStandardMaterial({ color:0xd4a017, metalness:0.95, roughness:0.12 })
+);
+pommel.position.y = -0.215;
+swordRoot.add(pommel);
 
-// Flame point light
-var swordLight = new THREE.PointLight(0xff6600, 4.0, 2.0);
-swordLight.position.y = 0.9;
-swordGroup.add(swordLight);
+var swordFlame = new THREE.PointLight(0xff6600, 4.5, 2.0);
+swordFlame.position.y = 0.9;
+swordRoot.add(swordFlame);
 
-// Fire particles
-var FIRE_COUNT = MOBILE ? 22 : 48;
-var firePos = new Float32Array(FIRE_COUNT * 3);
+var FIRE_N   = IS_MOBILE ? 22 : 50;
+var fireBuf  = new Float32Array(FIRE_N * 3);
 var fireData = [];
-for (var fi = 0; fi < FIRE_COUNT; fi++) {
-  fireData.push({
-    t:  Math.random(),
-    sp: 0.5 + Math.random() * 1.5,
-    ox: (Math.random() - 0.5) * 0.035,
-    oz: (Math.random() - 0.5) * 0.008,
-    by: 0.1 + Math.random() * 0.9
-  });
+for (var fi = 0; fi < FIRE_N; fi++) {
+  fireData.push({ t: Math.random(), sp: 0.5+Math.random()*1.6, ox:(Math.random()-.5)*0.034, oz:(Math.random()-.5)*0.007, by:0.1+Math.random()*0.88 });
 }
 var fireGeo = new THREE.BufferGeometry();
-fireGeo.setAttribute('position', new THREE.BufferAttribute(firePos, 3));
-var firePts = new THREE.Points(fireGeo, new THREE.PointsMaterial({
-  color: 0xff8800, size: 0.04, transparent: true, opacity: 0.9,
-  blending: THREE.AdditiveBlending, depthWrite: false
-}));
-swordGroup.add(firePts);
-swordGroup.visible = false;
-scene.add(swordGroup);
+fireGeo.setAttribute('position', new THREE.BufferAttribute(fireBuf, 3));
+swordRoot.add(new THREE.Points(fireGeo, new THREE.PointsMaterial({
+  color:0xff8800, size:0.042, transparent:true, opacity:0.88,
+  blending:THREE.AdditiveBlending, depthWrite:false
+})));
+swordRoot.visible = false;
+scene.add(swordRoot);
 
-// ── Laser Beam ────────────────────────────────────────────────────────────────
-var laserGroup = new THREE.Group();
-var LASER_LEN = 20;
+// ─── Laser Beam ───────────────────────────────────────────────────────────────
+var laserRoot = new THREE.Group();
+var LLEN = 20;
 
-var laserOuterGeo = new THREE.CylinderGeometry(0.05, 0.05, LASER_LEN, 8);
-var laserOuterMat = new THREE.MeshBasicMaterial({
-  color: 0x22ddff, transparent: true, opacity: 0.5,
-  blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.BackSide
-});
-var laserOuter = new THREE.Mesh(laserOuterGeo, laserOuterMat);
-laserOuter.rotation.x = Math.PI / 2;
-laserOuter.position.z = -LASER_LEN / 2;
-laserGroup.add(laserOuter);
+var laserOuter = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.048, 0.048, LLEN, 8),
+  new THREE.MeshBasicMaterial({ color:0x22ddff, transparent:true, opacity:0.5, blending:THREE.AdditiveBlending, depthWrite:false, side:THREE.BackSide })
+);
+laserOuter.rotation.x = Math.PI/2;
+laserOuter.position.z = -LLEN/2;
+laserRoot.add(laserOuter);
 
-var laserCoreGeo = new THREE.CylinderGeometry(0.012, 0.012, LASER_LEN, 6);
-var laserCoreMat = new THREE.MeshBasicMaterial({
-  color: 0xffffff, transparent: true, opacity: 0.95,
-  blending: THREE.AdditiveBlending, depthWrite: false
-});
-var laserCore = new THREE.Mesh(laserCoreGeo, laserCoreMat);
-laserCore.rotation.x = Math.PI / 2;
-laserCore.position.z = -LASER_LEN / 2;
-laserGroup.add(laserCore);
+var laserCore = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.012, 0.012, LLEN, 6),
+  new THREE.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0.92, blending:THREE.AdditiveBlending, depthWrite:false })
+);
+laserCore.rotation.x = Math.PI/2;
+laserCore.position.z = -LLEN/2;
+laserRoot.add(laserCore);
 
-var laserImpGeo = new THREE.SphereGeometry(0.35, 8, 8);
-var laserImpMat = new THREE.MeshBasicMaterial({
-  color: 0x44eeff, transparent: true, opacity: 0,
-  blending: THREE.AdditiveBlending, depthWrite: false
-});
-var laserImp = new THREE.Mesh(laserImpGeo, laserImpMat);
-laserImp.position.z = -LASER_LEN;
-laserGroup.add(laserImp);
+var laserImpact = new THREE.Mesh(
+  new THREE.SphereGeometry(0.32, 8, 8),
+  new THREE.MeshBasicMaterial({ color:0x44eeff, transparent:true, opacity:0, blending:THREE.AdditiveBlending, depthWrite:false })
+);
+laserImpact.position.z = -LLEN;
+laserRoot.add(laserImpact);
 
 var laserLight = new THREE.PointLight(0x00ddff, 0, 10);
-laserGroup.add(laserLight);
+laserRoot.add(laserLight);
+laserRoot.visible = false;
+scene.add(laserRoot);
 
-laserGroup.visible = false;
-scene.add(laserGroup);
-
-// ── Game State ────────────────────────────────────────────────────────────────
+// ─── Game State ────────────────────────────────────────────────────────────────
 var character   = null;
-var mixer       = null;
-var rightHand   = null;
-var leftHand    = null;
+var animMixer   = null;
+var rHandBone   = null;
+var lHandBone   = null;
 
-// Animation actions map
-var acts = {};
-// action names: idle, walk, run, sprint, atk1, atk2, spell, roll
-
-var clock     = new THREE.Clock();
-var camYaw    = 0;
-var camPitch  = 0.18;
-var camDist   = 3.5;
-var camTarget = new THREE.Vector3(0, 0.9, 0);
+// Actions map: name -> THREE.AnimationAction
+var animActions = {};
 
 // Physics
-var charY  = 0;
-var velY   = 0;
-var GRAVITY = -20;
-var JUMP_V  = 8.5;
+var charY  = 0, velY = 0;
+var GRAV   = -20, JUMP_V = 8.5;
+var onGnd  = true;
 
-// Character state
-var STATE = {
-  IDLE:     'idle',
-  WALK:     'walk',
-  RUN:      'run',
-  SPRINT:   'sprint',
-  JUMP:     'jump',
-  ATK1:     'atk1',
-  ATK2:     'atk2',
-  SPELL:    'spell',
-  ROLL:     'roll'
-};
+// Camera orbit
+var camYaw   = 0, camPitch = 0.18, camDist = 3.5;
+var camFocus = new THREE.Vector3(0, 0.9, 0);
 
-var currentState  = STATE.IDLE;
-var isAttacking   = false;
-var isCasting     = false;
-var isRolling     = false;
-var isGrounded    = true;
+// Character state flags
+var isAttacking = false;
+var isCasting   = false;
+var isRolling   = false;
+var curAnim     = 'idle';
 
-// Roll vars
-var rollProgress  = 0;
-var rollStartPos  = new THREE.Vector3();
-var rollEndPos    = new THREE.Vector3();
+// Roll data
+var rollT     = 0;
+var rollFrom  = new THREE.Vector3();
+var rollTo    = new THREE.Vector3();
 
-// Spell vars
-var spellActive   = false;
-var spellTimer    = 0;
+// Spell
+var spellOn   = false;
+var spellLife = 0;
 
 // Stats
 var hp = 100, mp = 100, mpRegen = 0;
-var comboCount = 0, comboTimer = 0;
-var comboTO = null;
-
-// Pre-alloc vectors
-var _vecA = new THREE.Vector3();
-var _vecB = new THREE.Vector3();
-var _quatA = new THREE.Quaternion();
-var _fwd   = new THREE.Vector3();
+var comboN = 0, comboT = 0, comboTO = null;
 
 // Input
 var keys = {};
 var joyX = 0, joyY = 0;
 
-// FPS counter
-var fpsFrames = 0, fpsTime = 0;
-var fpsEl = document.getElementById('fps');
+// Reused vectors
+var _v3a = new THREE.Vector3();
+var _v3b = new THREE.Vector3();
+var _qua = new THREE.Quaternion();
+var _fwd = new THREE.Vector3();
 
-// HUD elements
-var hpFill = document.getElementById('hpf');
-var mpFill = document.getElementById('mpf');
+var clock = new THREE.Clock();
 
-function updateHUD() {
-  hpFill.style.width = hp + '%';
-  mpFill.style.width = mp + '%';
+// ─── Load assets ──────────────────────────────────────────────────────────────
+var ASSETS = [
+  { key:'char',   url:'character.glb?v=3' },
+  { key:'idle',   url:'Idle.glb?v=3'      },
+  { key:'walk',   url:'Walking.glb?v=3'   },
+  { key:'run',    url:'Running.glb?v=3'   },
+  { key:'sprint', url:'Sprint.glb?v=3'    },
+  { key:'atk1',   url:'Attack1.glb?v=3'   },
+  { key:'atk2',   url:'Attack2.glb?v=3'   },
+  { key:'spell',  url:'CastSpell.glb?v=3' },
+  { key:'roll',   url:'Roll.glb?v=3'      },
+];
+var loaded = {}, loadIdx = 0;
+var gltfLoader = new THREE.GLTFLoader();
+
+function loadNext() {
+  if (loadIdx >= ASSETS.length) { onAllLoaded(); return; }
+  var a = ASSETS[loadIdx];
+  setStatus('Loading ' + a.url + '  (' + (loadIdx+1) + '/' + ASSETS.length + ')');
+  gltfLoader.load(a.url,
+    function(gltf) { loaded[a.key] = gltf; barEl.style.width = (++loadIdx / ASSETS.length * 100) + '%'; loadNext(); },
+    function(xhr)  { if (xhr.total) setStatus(a.url + '  ' + Math.round(xhr.loaded/xhr.total*100) + '%'); },
+    function(err)  { setStatus('FAILED: ' + a.url + ' — ' + (err.message||err), '#f44'); }
+  );
 }
+loadNext();
+
+// ─── After all loaded ─────────────────────────────────────────────────────────
+function onAllLoaded() {
+  setStatus('Setting up character…');
+
+  // ── Character mesh ──
+  character = loaded.char.scene;
+  character.scale.setScalar(0.01);   // Mixamo FBX is in cm
+  character.position.set(0, 0, 0);
+
+  character.traverse(function(obj) {
+    if (obj.isMesh) {
+      // Ensure skinned mesh renders correctly with bright materials
+      var mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+      mats.forEach(function(m) {
+        m.roughness   = 0.85;
+        m.metalness   = 0.0;
+        m.needsUpdate = true;
+      });
+    }
+    if (obj.isBone) {
+      // Note: character GLB has duplicate bone names with _1 suffix
+      // Use the first match (without suffix)
+      if (!rHandBone && obj.name === 'mixamorig7RightHand') rHandBone = obj;
+      if (!lHandBone && obj.name === 'mixamorig7LeftHand')  lHandBone = obj;
+    }
+  });
+  scene.add(character);
+
+  // ── Animation mixer ──
+  animMixer = new THREE.AnimationMixer(character);
+
+  // When a one-shot animation finishes, automatically return to locomotion
+  animMixer.addEventListener('finished', function(e) {
+    var name = e.action._clip.name;
+    console.log('Finished:', name);
+    isAttacking = false;
+    isCasting   = false;
+    isRolling   = false;
+    swordRoot.visible = false;
+    // Fade all actions out, let locomotion FSM take over next frame
+    Object.keys(animActions).forEach(function(k) {
+      if (animActions[k] && animActions[k] !== e.action) {
+        animActions[k].stop();
+      }
+    });
+    e.action.stop();
+    curAnim = '';  // force FSM to re-evaluate
+  });
+
+  // ── Build actions ──
+  var defs = [
+    { key:'idle',   name:'idle',   loop:true  },
+    { key:'walk',   name:'walk',   loop:true  },
+    { key:'run',    name:'run',    loop:true  },
+    { key:'sprint', name:'sprint', loop:true  },
+    { key:'atk1',   name:'atk1',   loop:false },
+    { key:'atk2',   name:'atk2',   loop:false },
+    { key:'spell',  name:'spell',  loop:false },
+    { key:'roll',   name:'roll',   loop:false },
+  ];
+
+  defs.forEach(function(d) {
+    var gltf = loaded[d.key];
+    if (!gltf || !gltf.animations || !gltf.animations.length) {
+      console.warn('No animation for:', d.key);
+      return;
+    }
+    var clip   = gltf.animations[0].clone();
+    clip.name  = d.name;
+    var action = animMixer.clipAction(clip);
+    if (d.loop) {
+      action.setLoop(THREE.LoopRepeat, Infinity);
+    } else {
+      action.setLoop(THREE.LoopOnce, 1);
+      action.clampWhenFinished = true;
+    }
+    action.setEffectiveWeight(1);
+    action.stop();
+    animActions[d.name] = action;
+    console.log('Action ready:', d.name, 'dur=' + clip.duration.toFixed(2) + 's');
+  });
+
+  // Start idle
+  if (animActions.idle) {
+    animActions.idle.play();
+    curAnim = 'idle';
+  }
+
+  barEl.style.width = '100%';
+  setStatus('Ready!', '#66ee88');
+  setTimeout(function() {
+    document.getElementById('loading').style.display = 'none';
+  }, 300);
+}
+
+// ─── Animation helpers ─────────────────────────────────────────────────────────
+
+// Smoothly transition to a looping animation
+function playLoop(name) {
+  if (!animActions[name]) return;
+  if (curAnim === name && animActions[name].isRunning()) return;
+
+  var FADE = 0.15;
+  // Fade out current
+  if (curAnim && curAnim !== name && animActions[curAnim]) {
+    animActions[curAnim].fadeOut(FADE);
+  }
+  animActions[name].reset();
+  animActions[name].setEffectiveWeight(1);
+  animActions[name].setLoop(THREE.LoopRepeat, Infinity);
+  animActions[name].fadeIn(FADE);
+  animActions[name].play();
+  curAnim = name;
+}
+
+// Play a one-shot action (attack / spell / roll)
+function playOnce(name) {
+  if (!animActions[name]) {
+    console.warn('No action:', name);
+    return;
+  }
+  var FADE = 0.1;
+  // Stop all currently running actions
+  Object.keys(animActions).forEach(function(k) {
+    if (animActions[k] && animActions[k].isRunning()) {
+      animActions[k].fadeOut(FADE);
+    }
+  });
+  animActions[name].stop();
+  animActions[name].reset();
+  animActions[name].setEffectiveWeight(1);
+  animActions[name].setLoop(THREE.LoopOnce, 1);
+  animActions[name].clampWhenFinished = true;
+  animActions[name].fadeIn(FADE);
+  animActions[name].play();
+  curAnim = name;
+}
+
+// ─── Controls ─────────────────────────────────────────────────────────────────
+document.addEventListener('keydown', function(e) { keys[e.code] = true; });
+document.addEventListener('keyup',   function(e) { keys[e.code] = false; });
+
+// Mouse camera
+var drag = false, mx0 = 0, my0 = 0;
+document.addEventListener('mousedown', function(e) { drag=true; mx0=e.clientX; my0=e.clientY; });
+document.addEventListener('mouseup',   function() { drag=false; });
+document.addEventListener('mousemove', function(e) {
+  if (!drag) return;
+  camYaw   -= (e.clientX-mx0) * 0.005;
+  camPitch -= (e.clientY-my0) * 0.004;
+  camPitch  = Math.max(0.04, Math.min(0.78, camPitch));
+  mx0=e.clientX; my0=e.clientY;
+});
+document.addEventListener('wheel', function(e) {
+  camDist = Math.max(1.5, Math.min(9, camDist + e.deltaY * 0.007));
+}, { passive:true });
+window.addEventListener('resize', function() {
+  renderer.setSize(innerWidth, innerHeight);
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+});
+
+// ─── Joystick ──────────────────────────────────────────────────────────────────
+var jBase = document.getElementById('jbase');
+var jKnob = document.getElementById('jknob');
+var JR = 36, jActive = false, jCX = 0, jCY = 0, jTID = -1;
+
+jBase.addEventListener('touchstart', function(e) {
+  e.preventDefault();
+  var t = e.changedTouches[0];
+  jActive = true; jTID = t.identifier;
+  var r = jBase.getBoundingClientRect();
+  jCX = r.left + r.width/2; jCY = r.top + r.height/2;
+}, { passive:false });
+
+document.addEventListener('touchmove', function(e) {
+  e.preventDefault();
+  for (var i=0; i<e.changedTouches.length; i++) {
+    var t = e.changedTouches[i];
+    if (t.identifier !== jTID || !jActive) continue;
+    var dx = t.clientX-jCX, dy = t.clientY-jCY, d = Math.hypot(dx,dy);
+    if (d > JR) { dx*=JR/d; dy*=JR/d; }
+    jKnob.style.left = (37+dx)+'px'; jKnob.style.top = (37+dy)+'px';
+    joyX=dx/JR; joyY=dy/JR;
+  }
+}, { passive:false });
+
+function joyReset() { jActive=false; jTID=-1; jKnob.style.left='37px'; jKnob.style.top='37px'; joyX=0; joyY=0; }
+document.addEventListener('touchend',    function(e) { for(var i=0;i<e.changedTouches.length;i++) if(e.changedTouches[i].identifier===jTID) joyReset(); });
+document.addEventListener('touchcancel', function()  { joyReset(); });
+
+// ─── Camera touch swipe ────────────────────────────────────────────────────────
+var cTch = null;
+document.addEventListener('touchstart', function(e) {
+  for (var i=0;i<e.changedTouches.length;i++) {
+    var t=e.changedTouches[i], rx=t.clientX/innerWidth;
+    if (rx>0.33 && rx<0.72 && !cTch) cTch={id:t.identifier,x:t.clientX,y:t.clientY};
+  }
+}, { passive:true });
+document.addEventListener('touchmove', function(e) {
+  if (!cTch) return;
+  for (var i=0;i<e.changedTouches.length;i++) {
+    var t=e.changedTouches[i];
+    if (t.identifier!==cTch.id) continue;
+    camYaw   -= (t.clientX-cTch.x)*0.006;
+    camPitch -= (t.clientY-cTch.y)*0.004;
+    camPitch  = Math.max(0.04, Math.min(0.78, camPitch));
+    cTch.x=t.clientX; cTch.y=t.clientY;
+  }
+}, { passive:true });
+document.addEventListener('touchend', function(e) {
+  if (!cTch) return;
+  for (var i=0;i<e.changedTouches.length;i++) if(e.changedTouches[i].identifier===cTch.id) cTch=null;
+});
+
+// ─── Mobile buttons ────────────────────────────────────────────────────────────
+function mBtn(id, code) {
+  var el = document.getElementById(id);
+  el.addEventListener('touchstart', function(e) { e.preventDefault(); e.stopPropagation(); keys[code]=true; el.classList.add('on'); }, { passive:false });
+  el.addEventListener('touchend',   function()  { keys[code]=false; el.classList.remove('on'); });
+  el.addEventListener('touchcancel',function()  { keys[code]=false; el.classList.remove('on'); });
+}
+mBtn('btn-jump',  'Space');
+mBtn('btn-atk1',  'KeyJ');
+mBtn('btn-atk2',  'KeyK');
+mBtn('btn-spell', 'KeyL');
+mBtn('btn-roll',  'KeyR');
+
+// ─── HUD helpers ───────────────────────────────────────────────────────────────
+var hpEl = document.getElementById('hp-bar');
+var mpEl = document.getElementById('mp-bar');
+function hudUpdate() { hpEl.style.width=hp+'%'; mpEl.style.width=mp+'%'; }
 
 function showCombo(n) {
   var el  = document.getElementById('combo');
   var txt = document.getElementById('combo-txt');
-  var colors = ['#ffcc00','#ff8800','#ff4400','#ff00bb','#aa00ff'];
-  txt.textContent = '⚔️ ' + n + '× COMBO';
-  txt.style.color = colors[Math.min(n - 2, colors.length - 1)];
+  var cols = ['#ffcc00','#ff8800','#ff4400','#ff00cc','#cc00ff'];
+  txt.textContent  = '⚔️ ' + n + '× COMBO';
+  txt.style.color  = cols[Math.min(n-2, cols.length-1)];
   el.style.transform = 'translate(-50%,-50%) scale(1)';
   el.style.opacity   = '1';
   clearTimeout(comboTO);
@@ -481,603 +670,226 @@ function showCombo(n) {
   }, 900);
 }
 
-// ── Animation helpers ─────────────────────────────────────────────────────────
+// ─── Main Loop ─────────────────────────────────────────────────────────────────
+var fpsFrames=0, fpsTime=0;
+var fpsEl = document.getElementById('fps');
 
-function stopAllAnims() {
-  Object.keys(acts).forEach(function(k) {
-    if (acts[k]) acts[k].stop();
-  });
-}
-
-// Crossfade to a looping animation
-function playAnim(name, fadeDur) {
-  if (!acts[name]) return;
-  if (fadeDur === undefined) fadeDur = 0.15;
-
-  // Already playing this animation
-  if (currentState === name && acts[name].isRunning()) return;
-
-  // Fade out current
-  var prev = acts[currentState];
-  if (prev && prev !== acts[name] && prev.isRunning()) {
-    prev.fadeOut(fadeDur);
-  }
-
-  // Fade in new
-  acts[name].reset();
-  acts[name].setEffectiveWeight(1);
-  acts[name].fadeIn(fadeDur);
-  acts[name].play();
-  currentState = name;
-}
-
-// Play a one-shot animation then return to idle
-function playOnceAnim(name, fadeDur) {
-  if (!acts[name]) {
-    console.warn('No action for:', name);
-    return;
-  }
-  if (fadeDur === undefined) fadeDur = 0.1;
-
-  // Fade out all currently running
-  Object.keys(acts).forEach(function(k) {
-    if (acts[k] && acts[k] !== acts[name] && acts[k].isRunning()) {
-      acts[k].fadeOut(fadeDur);
-    }
-  });
-
-  acts[name].stop();
-  acts[name].reset();
-  acts[name].setLoop(THREE.LoopOnce);
-  acts[name].clampWhenFinished = true;
-  acts[name].setEffectiveWeight(1);
-  acts[name].fadeIn(fadeDur);
-  acts[name].play();
-  currentState = name;
-}
-
-// Return to idle from a one-shot
-function returnToIdle() {
-  isAttacking = false;
-  isCasting   = false;
-  isRolling   = false;
-  swordGroup.visible = false;
-  if (acts.idle) {
-    var cur = acts[currentState];
-    if (cur && cur !== acts.idle) cur.fadeOut(0.15);
-    acts.idle.reset();
-    acts.idle.setEffectiveWeight(1);
-    acts.idle.setLoop(THREE.LoopRepeat);
-    acts.idle.fadeIn(0.15);
-    acts.idle.play();
-    currentState = STATE.IDLE;
-  }
-}
-
-// ── Load all GLBs ─────────────────────────────────────────────────────────────
-var ASSET_LIST = [
-  { key: 'char',   url: 'character.glb?v=2' },
-  { key: 'idle',   url: 'Idle.glb?v=2'      },
-  { key: 'walk',   url: 'Walking.glb?v=2'   },
-  { key: 'run',    url: 'Running.glb?v=2'   },
-  { key: 'sprint', url: 'Sprint.glb?v=2'    },
-  { key: 'atk1',   url: 'Attack1.glb?v=2'   },
-  { key: 'atk2',   url: 'Attack2.glb?v=2'   },
-  { key: 'spell',  url: 'CastSpell.glb?v=2' },
-  { key: 'roll',   url: 'Roll.glb?v=2'      },
-];
-
-var loaded = {};
-var loadCount = 0;
-var loader = new THREE.GLTFLoader();
-
-function loadAsset(i) {
-  if (i >= ASSET_LIST.length) {
-    onAllLoaded();
-    return;
-  }
-  var item = ASSET_LIST[i];
-  setStatus('Loading ' + item.url + ' (' + (i + 1) + '/' + ASSET_LIST.length + ')');
-
-  loader.load(
-    item.url,
-    function(gltf) {
-      loaded[item.key] = gltf;
-      loadCount++;
-      barEl.style.width = (loadCount / ASSET_LIST.length * 100) + '%';
-      loadAsset(i + 1);
-    },
-    function(xhr) {
-      if (xhr.total) setStatus(item.url + ' ' + Math.round(xhr.loaded / xhr.total * 100) + '%');
-    },
-    function(err) {
-      setStatus('FAILED: ' + item.url + ' — ' + (err.message || err), '#f44');
-    }
-  );
-}
-
-loadAsset(0);
-
-// ── After all assets loaded ───────────────────────────────────────────────────
-function onAllLoaded() {
-  setStatus('Building character…');
-
-  // ── Setup character mesh ──────────────────────────────────────────────────
-  character = loaded.char.scene;
-
-  // Mixamo FBX is in centimeters, scale to meters
-  character.scale.setScalar(0.01);
-
-  // Traverse: set up bones, improve materials
-  character.traverse(function(obj) {
-    if (obj.isMesh) {
-      // Ensure materials are visible and bright
-      var mats = Array.isArray(obj.material) ? obj.material : [obj.material];
-      mats.forEach(function(m) {
-        m.roughness  = 0.85;
-        m.metalness  = 0.0;
-        m.needsUpdate = true;
-      });
-    }
-    if (obj.isBone) {
-      var n = obj.name;
-      if (n === 'mixamorig7RightHand') rightHand = obj;
-      if (n === 'mixamorig7LeftHand')  leftHand  = obj;
-    }
-  });
-
-  // Place character at origin, feet on ground
-  character.position.set(0, 0, 0);
-  character.rotation.set(0, 0, 0);
-  scene.add(character);
-
-  // ── Setup AnimationMixer ──────────────────────────────────────────────────
-  mixer = new THREE.AnimationMixer(character);
-
-  // Listen for when one-shot animations finish
-  mixer.addEventListener('finished', function(e) {
-    var clipName = e.action._clip.name;
-    console.log('Anim finished:', clipName);
-    returnToIdle();
-  });
-
-  // Helper: get first animation clip from a loaded GLTF
-  function getClip(key, name) {
-    var g = loaded[key];
-    if (!g || !g.animations || g.animations.length === 0) {
-      console.warn('No animations in:', key);
-      return null;
-    }
-    var clip = g.animations[0].clone();
-    clip.name = name;
-    return clip;
-  }
-
-  // Build action map
-  var clipDefs = [
-    { key: 'idle',   name: STATE.IDLE,   loop: true  },
-    { key: 'walk',   name: STATE.WALK,   loop: true  },
-    { key: 'run',    name: STATE.RUN,    loop: true  },
-    { key: 'sprint', name: STATE.SPRINT, loop: true  },
-    { key: 'atk1',   name: STATE.ATK1,   loop: false },
-    { key: 'atk2',   name: STATE.ATK2,   loop: false },
-    { key: 'spell',  name: STATE.SPELL,  loop: false },
-    { key: 'roll',   name: STATE.ROLL,   loop: false },
-  ];
-
-  clipDefs.forEach(function(def) {
-    var clip = getClip(def.key, def.name);
-    if (!clip) return;
-
-    var action = mixer.clipAction(clip);
-    if (def.loop) {
-      action.setLoop(THREE.LoopRepeat);
-    } else {
-      action.setLoop(THREE.LoopOnce);
-      action.clampWhenFinished = true;
-    }
-    action.setEffectiveWeight(1);
-    acts[def.name] = action;
-    console.log('Action ready:', def.name, 'tracks:', clip.tracks.length);
-  });
-
-  // Start idle
-  if (acts[STATE.IDLE]) {
-    acts[STATE.IDLE].play();
-    currentState = STATE.IDLE;
-  }
-
-  // ── Done ─────────────────────────────────────────────────────────────────
-  barEl.style.width = '100%';
-  setStatus('Ready!', '#66ff88');
-  setTimeout(function() {
-    document.getElementById('loading').style.display = 'none';
-  }, 300);
-}
-
-// ── Controls ──────────────────────────────────────────────────────────────────
-
-// Keyboard
-document.addEventListener('keydown', function(e) { keys[e.code] = true; });
-document.addEventListener('keyup',   function(e) { keys[e.code] = false; });
-
-// Mouse camera
-var isDragging = false, lastMX = 0, lastMY = 0;
-document.addEventListener('mousedown', function(e) { isDragging = true; lastMX = e.clientX; lastMY = e.clientY; });
-document.addEventListener('mouseup',   function() { isDragging = false; });
-document.addEventListener('mousemove', function(e) {
-  if (!isDragging) return;
-  camYaw   -= (e.clientX - lastMX) * 0.005;
-  camPitch -= (e.clientY - lastMY) * 0.004;
-  camPitch  = Math.max(0.05, Math.min(0.75, camPitch));
-  lastMX = e.clientX; lastMY = e.clientY;
-});
-document.addEventListener('wheel', function(e) {
-  camDist = Math.max(1.5, Math.min(8, camDist + e.deltaY * 0.007));
-}, { passive: true });
-
-// Resize
-window.addEventListener('resize', function() {
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-});
-
-// ── Mobile Joystick ───────────────────────────────────────────────────────────
-var jBase = document.getElementById('jbase');
-var jKnob = document.getElementById('jknob');
-var JOY_R = 37;
-var joyActive = false, joyCX = 0, joyCY = 0;
-var joyTouchId = -1;
-
-jBase.addEventListener('touchstart', function(e) {
-  e.preventDefault();
-  var t = e.changedTouches[0];
-  joyTouchId = t.identifier;
-  joyActive  = true;
-  var r = jBase.getBoundingClientRect();
-  joyCX = r.left + r.width  / 2;
-  joyCY = r.top  + r.height / 2;
-}, { passive: false });
-
-document.addEventListener('touchmove', function(e) {
-  e.preventDefault();
-  for (var ti = 0; ti < e.changedTouches.length; ti++) {
-    var t = e.changedTouches[ti];
-    if (t.identifier === joyTouchId && joyActive) {
-      var dx = t.clientX - joyCX;
-      var dy = t.clientY - joyCY;
-      var dist = Math.hypot(dx, dy);
-      if (dist > JOY_R) { dx *= JOY_R / dist; dy *= JOY_R / dist; }
-      jKnob.style.left = (37 + dx) + 'px';
-      jKnob.style.top  = (37 + dy) + 'px';
-      joyX = dx / JOY_R;
-      joyY = dy / JOY_R;
-    }
-  }
-}, { passive: false });
-
-function resetJoy() {
-  joyActive  = false;
-  joyTouchId = -1;
-  jKnob.style.left = '37px';
-  jKnob.style.top  = '37px';
-  joyX = 0; joyY = 0;
-}
-document.addEventListener('touchend', function(e) {
-  for (var ti = 0; ti < e.changedTouches.length; ti++) {
-    if (e.changedTouches[ti].identifier === joyTouchId) resetJoy();
-  }
-});
-document.addEventListener('touchcancel', function() { resetJoy(); });
-
-// ── Camera touch (swipe middle area) ─────────────────────────────────────────
-var camTouch = null;
-document.addEventListener('touchstart', function(e) {
-  for (var ti = 0; ti < e.changedTouches.length; ti++) {
-    var t = e.changedTouches[ti];
-    var rx = t.clientX / window.innerWidth;
-    if (rx > 0.35 && rx < 0.70 && !camTouch) {
-      camTouch = { id: t.identifier, x: t.clientX, y: t.clientY };
-    }
-  }
-}, { passive: true });
-document.addEventListener('touchmove', function(e) {
-  if (!camTouch) return;
-  for (var ti = 0; ti < e.changedTouches.length; ti++) {
-    var t = e.changedTouches[ti];
-    if (t.identifier !== camTouch.id) continue;
-    camYaw   -= (t.clientX - camTouch.x) * 0.006;
-    camPitch -= (t.clientY - camTouch.y) * 0.004;
-    camPitch  = Math.max(0.05, Math.min(0.75, camPitch));
-    camTouch.x = t.clientX; camTouch.y = t.clientY;
-  }
-}, { passive: true });
-document.addEventListener('touchend', function(e) {
-  if (!camTouch) return;
-  for (var ti = 0; ti < e.changedTouches.length; ti++) {
-    if (e.changedTouches[ti].identifier === camTouch.id) camTouch = null;
-  }
-});
-
-// ── Mobile action buttons ─────────────────────────────────────────────────────
-function makeMobileBtn(id, code) {
-  var el = document.getElementById(id);
-  el.addEventListener('touchstart', function(e) {
-    e.preventDefault(); e.stopPropagation();
-    keys[code] = true;
-    el.classList.add('on');
-  }, { passive: false });
-  el.addEventListener('touchend', function() {
-    keys[code] = false;
-    el.classList.remove('on');
-  });
-  el.addEventListener('touchcancel', function() {
-    keys[code] = false;
-    el.classList.remove('on');
-  });
-}
-makeMobileBtn('bb-j', 'Space');
-makeMobileBtn('bb-a', 'KeyJ');
-makeMobileBtn('bb-b', 'KeyK');
-makeMobileBtn('bb-s', 'KeyL');
-makeMobileBtn('bb-r', 'KeyR');
-
-// ── Main Game Loop ────────────────────────────────────────────────────────────
 function gameLoop() {
   requestAnimationFrame(gameLoop);
   var dt = Math.min(clock.getDelta(), 0.05);
 
-  // FPS counter
-  fpsFrames++;
-  fpsTime += dt;
-  if (fpsTime >= 1.0) {
-    fpsEl.textContent = fpsFrames + ' fps';
-    fpsFrames = 0; fpsTime = 0;
-  }
+  // FPS
+  fpsFrames++; fpsTime+=dt;
+  if (fpsTime >= 1) { fpsEl.textContent=fpsFrames+' fps'; fpsFrames=0; fpsTime=0; }
 
-  // Render even before character loads (so scene is visible)
-  if (!character || !mixer) {
+  // Render scene even before character is ready
+  if (!character || !animMixer) {
     renderer.render(scene, camera);
     return;
   }
 
-  // ── Read movement input ────────────────────────────────────────────────
-  var moveX = joyX;
-  var moveZ = joyY;
-  if (keys['KeyA'] || keys['ArrowLeft'])  moveX -= 1;
-  if (keys['KeyD'] || keys['ArrowRight']) moveX += 1;
-  if (keys['KeyW'] || keys['ArrowUp'])    moveZ -= 1;
-  if (keys['KeyS'] || keys['ArrowDown'])  moveZ += 1;
+  // ── Read input ──────────────────────────────────────────────────────────
+  var ix = joyX, iz = joyY;
+  if (keys['KeyA'] || keys['ArrowLeft'])  ix -= 1;
+  if (keys['KeyD'] || keys['ArrowRight']) ix += 1;
+  if (keys['KeyW'] || keys['ArrowUp'])    iz -= 1;
+  if (keys['KeyS'] || keys['ArrowDown'])  iz += 1;
 
-  var moveLen = Math.hypot(moveX, moveZ);
-  var isMoving  = moveLen > 0.04;
-  var isSprinting = isMoving && (keys['ShiftLeft'] || keys['ShiftRight']);
+  var inputLen   = Math.hypot(ix, iz);
+  var moving     = inputLen > 0.04;
+  var sprinting  = moving && (keys['ShiftLeft'] || keys['ShiftRight']);
 
-  // ── Movement ───────────────────────────────────────────────────────────
+  // ── Character movement ──────────────────────────────────────────────────
   var moveSpeed = 0;
-  if (isMoving) {
-    if (isSprinting)        moveSpeed = 8.5;
-    else if (moveLen > 0.6) moveSpeed = 5.0;
+  if (moving) {
+    if (sprinting)          moveSpeed = 8.8;
+    else if (inputLen>0.6)  moveSpeed = 5.0;
     else                    moveSpeed = 2.5;
   }
 
-  if (isMoving && !isRolling) {
-    var nx = moveX / moveLen;
-    var nz = moveZ / moveLen;
-    // Rotate move direction by camera yaw
-    var wx =  nx * Math.cos(camYaw) + nz * Math.sin(camYaw);
-    var wz = -nx * Math.sin(camYaw) + nz * Math.cos(camYaw);
-
+  if (moving && !isRolling) {
+    var nx = ix/inputLen, nz = iz/inputLen;
+    // Rotate by camera yaw so movement is relative to camera
+    var wx =  nx*Math.cos(camYaw) + nz*Math.sin(camYaw);
+    var wz = -nx*Math.sin(camYaw) + nz*Math.cos(camYaw);
     character.position.x += wx * moveSpeed * dt;
     character.position.z += wz * moveSpeed * dt;
-
-    // Smooth character turn to face movement direction
-    var targetYaw = Math.atan2(wx, wz);
-    var curYaw    = character.rotation.y;
-    var diff = targetYaw - curYaw;
-    while (diff >  Math.PI) diff -= Math.PI * 2;
-    while (diff < -Math.PI) diff += Math.PI * 2;
+    // Smoothly rotate character to face direction
+    var tYaw = Math.atan2(wx, wz);
+    var diff = tYaw - character.rotation.y;
+    while (diff >  Math.PI) diff -= Math.PI*2;
+    while (diff < -Math.PI) diff += Math.PI*2;
     character.rotation.y += diff * 12 * dt;
   }
 
-  // ── Gravity & Jump ─────────────────────────────────────────────────────
+  // ── Physics ─────────────────────────────────────────────────────────────
   if (!isRolling) {
-    velY    += GRAVITY * dt;
-    charY   += velY * dt;
-    if (charY <= 0) {
-      charY  = 0;
-      velY   = 0;
-      isGrounded = true;
-    } else {
-      isGrounded = false;
-    }
+    velY  += GRAV * dt;
+    charY += velY * dt;
+    if (charY <= 0) { charY=0; velY=0; onGnd=true; }
+    else             { onGnd=false; }
   }
   character.position.y = charY;
 
   // Jump
-  if (keys['Space'] && isGrounded && !isAttacking && !isRolling && !isCasting) {
-    velY    = JUMP_V;
-    charY   = 0.01;
-    isGrounded = false;
-    keys['Space'] = false;
+  if (keys['Space'] && onGnd && !isAttacking && !isRolling && !isCasting) {
+    velY=JUMP_V; charY=0.02; onGnd=false;
+    keys['Space']=false;
   }
 
-  // ── Roll movement ──────────────────────────────────────────────────────
+  // ── Roll physics ─────────────────────────────────────────────────────────
   if (isRolling) {
-    rollProgress = Math.min(1, rollProgress + dt * 2.8);
-    character.position.lerpVectors(rollStartPos, rollEndPos, rollProgress);
-    character.position.y = Math.sin(rollProgress * Math.PI) * 0.3;
+    rollT = Math.min(1, rollT + dt*2.8);
+    character.position.lerpVectors(rollFrom, rollTo, rollT);
+    character.position.y = Math.sin(rollT*Math.PI) * 0.3;
     charY = character.position.y;
   }
 
-  // ── Actions (only when free) ───────────────────────────────────────────
+  // ── Trigger actions ───────────────────────────────────────────────────────
   if (!isAttacking && !isCasting && !isRolling) {
 
-    // Attack 1 — J button
     if (keys['KeyJ']) {
-      keys['KeyJ']  = false;
-      isAttacking   = true;
-      swordGroup.visible = true;
-      comboCount++;
-      comboTimer = 1.8;
-      if (comboCount >= 2) showCombo(comboCount);
-      playOnceAnim(STATE.ATK1);
+      keys['KeyJ'] = false;
+      isAttacking  = true;
+      swordRoot.visible = true;
+      comboN++; comboT=1.8;
+      if (comboN >= 2) showCombo(comboN);
+      playOnce('atk1');
     }
-
-    // Attack 2 — K button
     else if (keys['KeyK']) {
-      keys['KeyK']  = false;
-      isAttacking   = true;
-      swordGroup.visible = true;
-      comboCount++;
-      comboTimer = 1.8;
-      if (comboCount >= 2) showCombo(comboCount);
-      playOnceAnim(STATE.ATK2);
+      keys['KeyK'] = false;
+      isAttacking  = true;
+      swordRoot.visible = true;
+      comboN++; comboT=1.8;
+      if (comboN >= 2) showCombo(comboN);
+      playOnce('atk2');
     }
-
-    // Spell — L button (costs 25 MP)
     else if (keys['KeyL'] && mp >= 25) {
-      keys['KeyL']  = false;
-      isCasting     = true;
-      mp = Math.max(0, mp - 25);
-      updateHUD();
-      spellActive   = true;
-      spellTimer    = 1.5;
-      laserGroup.visible = true;
-      laserLight.intensity = 9;
-      playOnceAnim(STATE.SPELL);
+      keys['KeyL'] = false;
+      isCasting    = true;
+      mp = Math.max(0, mp-25);
+      hudUpdate();
+      spellOn=true; spellLife=1.5;
+      laserRoot.visible=true; laserLight.intensity=9;
+      playOnce('spell');
     }
-
-    // Roll — R or Ctrl
     else if (keys['KeyR'] || keys['ControlLeft']) {
-      keys['KeyR']       = false;
-      keys['ControlLeft'] = false;
-      isRolling      = true;
-      rollProgress   = 0;
-      rollStartPos.copy(character.position);
+      keys['KeyR']=false; keys['ControlLeft']=false;
+      isRolling=true; rollT=0;
+      rollFrom.copy(character.position);
       _fwd.set(Math.sin(character.rotation.y), 0, Math.cos(character.rotation.y));
-      rollEndPos.copy(character.position).addScaledVector(_fwd, 3.0);
-      rollEndPos.y = 0;
-      playOnceAnim(STATE.ROLL);
+      rollTo.copy(character.position).addScaledVector(_fwd, 3.0);
+      rollTo.y=0;
+      playOnce('roll');
     }
   }
 
-  // ── Combo timer ────────────────────────────────────────────────────────
-  comboTimer -= dt;
-  if (comboTimer <= 0) { comboTimer = 0; comboCount = 0; }
+  // ── Timers ────────────────────────────────────────────────────────────────
+  comboT -= dt;
+  if (comboT <= 0) { comboT=0; comboN=0; }
 
-  // ── MP regen ───────────────────────────────────────────────────────────
   mpRegen += dt;
-  if (mpRegen >= 0.45) {
-    mpRegen = 0;
-    mp = Math.min(100, mp + 4);
-    updateHUD();
-  }
+  if (mpRegen >= 0.44) { mpRegen=0; mp=Math.min(100,mp+4); hudUpdate(); }
 
-  // ── Locomotion animation state machine ────────────────────────────────
-  // Only change locomotion when not in a one-shot action
+  // ── Locomotion FSM ────────────────────────────────────────────────────────
+  // Only update locomotion when no action is running
   if (!isAttacking && !isCasting && !isRolling) {
-    swordGroup.visible = false;
-    if (!isGrounded) {
-      // In air — keep current anim or play run
-      if (currentState !== STATE.RUN && currentState !== STATE.SPRINT) {
-        playAnim(STATE.RUN, 0.1);
-      }
-    } else if (isSprinting) {
-      playAnim(STATE.SPRINT, 0.15);
+    swordRoot.visible = false;
+    if (!onGnd) {
+      // In air: keep run animation
+      if (curAnim !== 'run') playLoop('run');
+    } else if (sprinting) {
+      playLoop('sprint');
     } else if (moveSpeed >= 4.0) {
-      playAnim(STATE.RUN, 0.15);
+      playLoop('run');
     } else if (moveSpeed > 0) {
-      playAnim(STATE.WALK, 0.15);
+      playLoop('walk');
     } else {
-      playAnim(STATE.IDLE, 0.2);
+      playLoop('idle');
     }
   }
 
-  // ── Sword: attach to right hand bone ──────────────────────────────────
-  if (rightHand) {
-    rightHand.getWorldPosition(_vecA);
-    rightHand.getWorldQuaternion(_quatA);
-    swordGroup.position.copy(_vecA);
-    swordGroup.quaternion.copy(_quatA);
-    swordGroup.rotateX(Math.PI * 0.5);
-    swordGroup.rotateZ(-0.08);
+  // ── Attach sword to right hand bone ───────────────────────────────────────
+  if (rHandBone) {
+    rHandBone.getWorldPosition(_v3a);
+    rHandBone.getWorldQuaternion(_qua);
+    swordRoot.position.copy(_v3a);
+    swordRoot.quaternion.copy(_qua);
+    swordRoot.rotateX(Math.PI * 0.5);
+    swordRoot.rotateZ(-0.08);
   } else {
-    // Fallback: position sword in front of character
     _fwd.set(Math.sin(character.rotation.y), 0, Math.cos(character.rotation.y));
-    swordGroup.position.copy(character.position).addScaledVector(_fwd, 0.3);
-    swordGroup.position.y = character.position.y + 1.1;
-    swordGroup.rotation.y = character.rotation.y;
-    swordGroup.rotateX(Math.PI * 0.5);
+    swordRoot.position.copy(character.position).addScaledVector(_fwd, 0.3);
+    swordRoot.position.y = character.position.y + 1.1;
+    swordRoot.rotation.y = character.rotation.y;
+    swordRoot.rotateX(Math.PI * 0.5);
   }
 
-  // ── Laser: attach to left hand bone ───────────────────────────────────
-  if (leftHand) {
-    leftHand.getWorldPosition(_vecA);
-    leftHand.getWorldQuaternion(_quatA);
-    laserGroup.position.copy(_vecA);
-    laserGroup.quaternion.copy(_quatA);
-    laserGroup.rotateY(Math.PI);
-    laserGroup.rotateX(-0.2);
+  // ── Attach laser to left hand bone ────────────────────────────────────────
+  if (lHandBone) {
+    lHandBone.getWorldPosition(_v3a);
+    lHandBone.getWorldQuaternion(_qua);
+    laserRoot.position.copy(_v3a);
+    laserRoot.quaternion.copy(_qua);
+    laserRoot.rotateY(Math.PI);
+    laserRoot.rotateX(-0.2);
   } else {
-    laserGroup.position.copy(character.position);
-    laserGroup.position.y = character.position.y + 1.35;
-    laserGroup.rotation.y = character.rotation.y + Math.PI;
+    laserRoot.position.copy(character.position);
+    laserRoot.position.y = character.position.y + 1.3;
+    laserRoot.rotation.y = character.rotation.y + Math.PI;
   }
 
-  // ── Fire particles on sword ────────────────────────────────────────────
-  if (swordGroup.visible) {
-    var fp = fireGeo.attributes.position;
-    var now = performance.now() * 0.001;
-    for (var fIdx = 0; fIdx < fireData.length; fIdx++) {
-      var fd = fireData[fIdx];
-      fd.t += fd.sp * dt;
+  // ── Fire particle animation ────────────────────────────────────────────────
+  if (swordRoot.visible) {
+    var fpAttr = fireGeo.attributes.position;
+    var now    = performance.now() * 0.001;
+    for (var fi=0; fi<FIRE_N; fi++) {
+      var fd  = fireData[fi];
+      fd.t   += fd.sp * dt;
       if (fd.t > 1) fd.t = 0;
-      fp.array[fIdx * 3]     = fd.ox + Math.sin(now * 4 + fIdx * 0.7) * 0.018;
-      fp.array[fIdx * 3 + 1] = fd.by + fd.t * 0.28;
-      fp.array[fIdx * 3 + 2] = fd.oz;
+      fpAttr.array[fi*3]   = fd.ox + Math.sin(now*4 + fi*0.65)*0.016;
+      fpAttr.array[fi*3+1] = fd.by + fd.t * 0.28;
+      fpAttr.array[fi*3+2] = fd.oz;
     }
-    fp.needsUpdate = true;
-    swordLight.intensity = 3.5 + Math.sin(now * 10) * 0.8;
-    swordLight.color.setHSL(0.07 + Math.sin(now * 6) * 0.03, 1, 0.55);
+    fpAttr.needsUpdate = true;
+    swordFlame.intensity = 3.8 + Math.sin(performance.now()*0.009)*0.8;
+    swordFlame.color.setHSL(0.07+Math.sin(performance.now()*0.006)*0.025, 1, 0.54);
   }
 
-  // ── Laser pulse ────────────────────────────────────────────────────────
-  if (spellActive) {
-    spellTimer -= dt;
-    var pulse = 0.75 + Math.sin(performance.now() * 0.022) * 0.25;
-    laserOuterMat.opacity = 0.5  * pulse;
-    laserCoreMat.opacity  = 0.95 * pulse;
-    laserImpMat.opacity   = 0.4  * pulse;
-    laserLight.intensity  = 9 * pulse;
-    if (spellTimer <= 0) {
-      laserGroup.visible = false;
-      spellActive = false;
-      laserLight.intensity = 0;
+  // ── Laser pulse ───────────────────────────────────────────────────────────
+  if (spellOn) {
+    spellLife -= dt;
+    var pulse = 0.78 + Math.sin(performance.now()*0.022)*0.22;
+    laserOuter.material.opacity   = 0.50*pulse;
+    laserCore.material.opacity    = 0.92*pulse;
+    laserImpact.material.opacity  = 0.42*pulse;
+    laserLight.intensity          = 9*pulse;
+    if (spellLife <= 0) {
+      laserRoot.visible=false; spellOn=false; laserLight.intensity=0;
     }
   }
 
-  // ── Float ambient particles ────────────────────────────────────────────
-  for (var pIdx = 0; pIdx < PART_COUNT; pIdx++) {
-    partPos[pIdx * 3 + 1] += 0.003 * dt * 60;
-    if (partPos[pIdx * 3 + 1] > 6) partPos[pIdx * 3 + 1] = 0.3;
+  // ── Float particles ───────────────────────────────────────────────────────
+  for (var pi=0; pi<PCOUNT; pi++) {
+    pBuf[pi*3+1] += 0.003 * dt * 60;
+    if (pBuf[pi*3+1] > 6) pBuf[pi*3+1] = 0.35;
   }
-  partGeo.attributes.position.needsUpdate = true;
+  pGeo.attributes.position.needsUpdate = true;
 
-  // ── Update mixer ───────────────────────────────────────────────────────
-  mixer.update(dt);
+  // ── Update mixer ──────────────────────────────────────────────────────────
+  animMixer.update(dt);
 
-  // ── Camera follow ──────────────────────────────────────────────────────
-  _vecB.copy(character.position);
-  _vecB.y += 0.9;  // aim at torso
-  camTarget.lerp(_vecB, 10 * dt);
+  // ── Camera follow ─────────────────────────────────────────────────────────
+  _v3b.copy(character.position);
+  _v3b.y += 0.9;
+  camFocus.lerp(_v3b, 10*dt);
 
-  var cpx = camTarget.x + Math.sin(camYaw)   * Math.cos(camPitch) * camDist;
-  var cpy = camTarget.y + Math.sin(camPitch)  * camDist;
-  var cpz = camTarget.z + Math.cos(camYaw)   * Math.cos(camPitch) * camDist;
-  camera.position.set(cpx, cpy, cpz);
-  camera.lookAt(camTarget);
+  camera.position.set(
+    camFocus.x + Math.sin(camYaw)  * Math.cos(camPitch) * camDist,
+    camFocus.y + Math.sin(camPitch) * camDist,
+    camFocus.z + Math.cos(camYaw)  * Math.cos(camPitch) * camDist
+  );
+  camera.lookAt(camFocus);
 
   renderer.render(scene, camera);
 }
