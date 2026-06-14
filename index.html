@@ -351,6 +351,13 @@ var character   = null;
 var animMixer   = null;
 var rHandBone   = null;
 var lHandBone   = null;
+var leftFootBone  = null;
+var rightFootBone = null;
+var leftToeBone   = null;
+var rightToeBone  = null;
+
+// Visual Y offset applied to the character mesh only (ground-lock correction)
+var groundLockOffset = 0;
 
 // Actions map: name -> THREE.AnimationAction
 var animActions = {};
@@ -397,15 +404,15 @@ var clock = new THREE.Clock();
 
 // ─── Load assets ──────────────────────────────────────────────────────────────
 var ASSETS = [
-  { key:'char',   url:'character.glb?v=3' },
-  { key:'idle',   url:'Idle.glb?v=3'      },
-  { key:'walk',   url:'Walking.glb?v=3'   },
-  { key:'run',    url:'Running.glb?v=3'   },
-  { key:'sprint', url:'Sprint.glb?v=3'    },
-  { key:'atk1',   url:'Attack1.glb?v=3'   },
-  { key:'atk2',   url:'Attack2.glb?v=3'   },
-  { key:'spell',  url:'CastSpell.glb?v=3' },
-  { key:'roll',   url:'Roll.glb?v=3'      },
+  { key:'char',   url:'character.glb?v=4' },
+  { key:'idle',   url:'Idle.glb?v=4'      },
+  { key:'walk',   url:'Walking.glb?v=4'   },
+  { key:'run',    url:'Running.glb?v=4'   },
+  { key:'sprint', url:'Sprint.glb?v=4'    },
+  { key:'atk1',   url:'Attack1.glb?v=4'   },
+  { key:'atk2',   url:'Attack2.glb?v=4'   },
+  { key:'spell',  url:'CastSpell.glb?v=4' },
+  { key:'roll',   url:'Roll.glb?v=4'      },
 ];
 var loaded = {}, loadIdx = 0;
 var gltfLoader = new THREE.GLTFLoader();
@@ -442,10 +449,14 @@ function onAllLoaded() {
       });
     }
     if (obj.isBone) {
-      // Note: character GLB has duplicate bone names with _1 suffix
-      // Use the first match (without suffix)
-      if (!rHandBone && obj.name === 'mixamorig7RightHand') rHandBone = obj;
-      if (!lHandBone && obj.name === 'mixamorig7LeftHand')  lHandBone = obj;
+      // Note: character GLB has duplicate bone names with _1/_2 suffix
+      // (one per SkinnedMesh skeleton copy) - use the first match found
+      if (!rHandBone     && obj.name === 'mixamorig7RightHand')   rHandBone     = obj;
+      if (!lHandBone     && obj.name === 'mixamorig7LeftHand')    lHandBone     = obj;
+      if (!leftFootBone  && obj.name === 'mixamorig7LeftFoot')    leftFootBone  = obj;
+      if (!rightFootBone && obj.name === 'mixamorig7RightFoot')   rightFootBone = obj;
+      if (!leftToeBone   && obj.name.indexOf('mixamorig7LeftToe')  === 0) leftToeBone  = obj;
+      if (!rightToeBone  && obj.name.indexOf('mixamorig7RightToe') === 0) rightToeBone = obj;
     }
   });
   scene.add(character);
@@ -791,6 +802,83 @@ function gameLoop() {
   mpRegen += dt;
   if (mpRegen >= 0.44) { mpRegen=0; mp=Math.min(100,mp+4); hudUpdate(); }
 
+  // ── Fire particle animation ────────────────────────────────────────────────
+  if (swordRoot.visible) {
+    var fpAttr = fireGeo.attributes.position;
+    var now    = performance.now() * 0.001;
+    for (var fi=0; fi<FIRE_N; fi++) {
+      var fd  = fireData[fi];
+      fd.t   += fd.sp * dt;
+      if (fd.t > 1) fd.t = 0;
+      fpAttr.array[fi*3]   = fd.ox + Math.sin(now*4 + fi*0.65)*0.016;
+      fpAttr.array[fi*3+1] = fd.by + fd.t * 0.28;
+      fpAttr.array[fi*3+2] = fd.oz;
+    }
+    fpAttr.needsUpdate = true;
+    swordFlame.intensity = 3.8 + Math.sin(performance.now()*0.009)*0.8;
+    swordFlame.color.setHSL(0.07+Math.sin(performance.now()*0.006)*0.025, 1, 0.54);
+  }
+
+  // ── Laser pulse ───────────────────────────────────────────────────────────
+  if (spellOn) {
+    spellLife -= dt;
+    var pulse = 0.78 + Math.sin(performance.now()*0.022)*0.22;
+    laserOuter.material.opacity   = 0.50*pulse;
+    laserCore.material.opacity    = 0.92*pulse;
+    laserImpact.material.opacity  = 0.42*pulse;
+    laserLight.intensity          = 9*pulse;
+    if (spellLife <= 0) {
+      laserRoot.visible=false; spellOn=false; laserLight.intensity=0;
+    }
+  }
+
+  // ── Float particles ───────────────────────────────────────────────────────
+  for (var pi=0; pi<PCOUNT; pi++) {
+    pBuf[pi*3+1] += 0.003 * dt * 60;
+    if (pBuf[pi*3+1] > 6) pBuf[pi*3+1] = 0.35;
+  }
+  pGeo.attributes.position.needsUpdate = true;
+
+  // ── Update mixer ──────────────────────────────────────────────────────────
+  animMixer.update(dt);
+
+  // ── Ground-lock correction ─────────────────────────────────────────────
+  // Mixamo animations bake root motion into the Hips bone, which makes the
+  // skeleton drift up/down relative to character.position.y (causing the
+  // feet to clip through the floor or float above it).
+  // Fix: after the mixer updates the pose, measure how far below/above the
+  // ground (y=0, in local space) the lowest foot bone is, then apply an
+  // equal-and-opposite Y offset to the character GROUP only (visual fix).
+  // This keeps physics (charY / jump / roll) completely independent.
+  if (leftFootBone && rightFootBone) {
+    // Temporarily reset character Y to 0 so bone world positions are in
+    // "local ground space" (i.e. relative to where the feet SHOULD be).
+    var savedY = character.position.y;
+    character.position.y = 0;
+    character.updateMatrixWorld(true);
+
+    var lfY = leftFootBone.getWorldPosition(_v3a).y;
+    var rfY = rightFootBone.getWorldPosition(_v3b).y;
+    var minFootY = Math.min(lfY, rfY);
+
+    if (leftToeBone)  minFootY = Math.min(minFootY, leftToeBone.getWorldPosition(_v3a).y);
+    if (rightToeBone) minFootY = Math.min(minFootY, rightToeBone.getWorldPosition(_v3b).y);
+
+    // We want the lowest foot to rest exactly at y=0 (the ground plane).
+    // groundLockOffset is how much we must shift the whole character up.
+    var targetOffset = -minFootY;
+
+    // Smooth the correction slightly to avoid any visual popping
+    groundLockOffset += (targetOffset - groundLockOffset) * Math.min(1, dt * 25);
+
+    // Restore physics Y, then apply physics Y + ground-lock offset to the mesh
+    character.position.y = savedY;
+  }
+
+  // Apply final visual position: physics Y (jump/roll arcs) + ground-lock fix
+  character.position.y = charY + groundLockOffset;
+  character.updateMatrixWorld(true);
+
   // ── Locomotion FSM ────────────────────────────────────────────────────────
   // Only update locomotion when no action is running
   if (!isAttacking && !isCasting && !isRolling) {
@@ -839,45 +927,7 @@ function gameLoop() {
     laserRoot.rotation.y = character.rotation.y + Math.PI;
   }
 
-  // ── Fire particle animation ────────────────────────────────────────────────
-  if (swordRoot.visible) {
-    var fpAttr = fireGeo.attributes.position;
-    var now    = performance.now() * 0.001;
-    for (var fi=0; fi<FIRE_N; fi++) {
-      var fd  = fireData[fi];
-      fd.t   += fd.sp * dt;
-      if (fd.t > 1) fd.t = 0;
-      fpAttr.array[fi*3]   = fd.ox + Math.sin(now*4 + fi*0.65)*0.016;
-      fpAttr.array[fi*3+1] = fd.by + fd.t * 0.28;
-      fpAttr.array[fi*3+2] = fd.oz;
-    }
-    fpAttr.needsUpdate = true;
-    swordFlame.intensity = 3.8 + Math.sin(performance.now()*0.009)*0.8;
-    swordFlame.color.setHSL(0.07+Math.sin(performance.now()*0.006)*0.025, 1, 0.54);
-  }
 
-  // ── Laser pulse ───────────────────────────────────────────────────────────
-  if (spellOn) {
-    spellLife -= dt;
-    var pulse = 0.78 + Math.sin(performance.now()*0.022)*0.22;
-    laserOuter.material.opacity   = 0.50*pulse;
-    laserCore.material.opacity    = 0.92*pulse;
-    laserImpact.material.opacity  = 0.42*pulse;
-    laserLight.intensity          = 9*pulse;
-    if (spellLife <= 0) {
-      laserRoot.visible=false; spellOn=false; laserLight.intensity=0;
-    }
-  }
-
-  // ── Float particles ───────────────────────────────────────────────────────
-  for (var pi=0; pi<PCOUNT; pi++) {
-    pBuf[pi*3+1] += 0.003 * dt * 60;
-    if (pBuf[pi*3+1] > 6) pBuf[pi*3+1] = 0.35;
-  }
-  pGeo.attributes.position.needsUpdate = true;
-
-  // ── Update mixer ──────────────────────────────────────────────────────────
-  animMixer.update(dt);
 
   // ── Camera follow ─────────────────────────────────────────────────────────
   _v3b.copy(character.position);
